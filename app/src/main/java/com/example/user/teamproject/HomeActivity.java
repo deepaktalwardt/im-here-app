@@ -1,10 +1,14 @@
 package com.example.user.teamproject;
 
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.hardware.camera2.CameraDevice;
+import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.util.Log;
@@ -32,6 +36,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     private ListView users;
     DatabaseHelper myDatabase;
 
+    private CameraDevice cameraDevice;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,8 +50,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+                Intent ARIntent = new Intent(HomeActivity.this, ARActivity.class);
+                HomeActivity.this.startActivity(ARIntent);
             }
         });
 
@@ -133,4 +140,17 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+//    private void openCamera() {
+//        if (cameraDevice == null) {
+//            return;
+//        }
+//        CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+//        try {
+//            Cam
+//        }
+//        Intent cameraIntent = new Intent(MediaStore.EXTRA_FULL_SCREEN);
+//        startActivity(cameraIntent, null);
+//
+//    }
 }
