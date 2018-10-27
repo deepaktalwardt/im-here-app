@@ -124,8 +124,6 @@ public class SignupPageActivity extends AppCompatActivity {
         ClickableSpan clickableSpan = new ClickableSpan() {
             @Override
             public void onClick(View widget) {
-                Intent intent = new Intent(SignupPageActivity.this, LoginPageActivity.class);
-                startActivity(intent);
                 finish();
             }
         };

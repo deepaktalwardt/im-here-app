@@ -1,6 +1,5 @@
 <resources>
-    <string name="app_name">TeamProject</string>
-    <string name="title_activity_main_page">MainPageActivity</string>
+    <string name="app_name">I\'m Here</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Android Studio</string>
