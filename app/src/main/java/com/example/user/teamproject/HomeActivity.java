@@ -24,19 +24,30 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.couchbase.lite.CouchbaseLiteException;
+import com.couchbase.lite.DataSource;
+import com.couchbase.lite.Database;
+import com.couchbase.lite.DatabaseConfiguration;
+import com.couchbase.lite.Document;
+import com.couchbase.lite.MutableDocument;
+import com.couchbase.lite.Query;
+import com.couchbase.lite.QueryBuilder;
+import com.couchbase.lite.ResultSet;
+import com.couchbase.lite.SelectResult;
+
 import java.util.ArrayList;
 
 public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     ImageView HomeImage;
     TextView HomeName, HomeUsername;
     private ListView users;
-    DatabaseHelper myDatabase;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-
+        
         //navigation drawer
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -76,26 +87,45 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
         //view users' list purpose, will delete
         users = findViewById(R.id.listView);
-        myDatabase = new DatabaseHelper(this);
-        populateListView();
+        try {
+            populateListView();
+        } catch (CouchbaseLiteException e) {
+            e.printStackTrace();
+        }
     }
 
+
     //view user purpose, will delete
-    private void populateListView() {
-        //get the data and append to a list
-        Cursor data = myDatabase.getData();
-        ArrayList<String> listData = new ArrayList<>();
-        while (data.moveToNext()) {
-            //get the value from the data in column, then add it to the ArrayList
-            listData.add(data.getString(0));
-            listData.add(data.getString(2));
-            listData.add(data.getString(3));
-            listData.add(data.getString(4));
+    private void populateListView() throws CouchbaseLiteException {
+        Intent intent = getIntent();
+        // Get the database (and create it if it doesn’t exist).
+        DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
+        Database userDatabase = null;
+        try {
+            userDatabase = new Database("userList", config);
+        } catch (CouchbaseLiteException e) {
+            e.printStackTrace();
         }
+        //get the data and append to a list
+        MutableDocument userDoc = new MutableDocument();
+        Document document = userDatabase.getDocument(String.valueOf(intent.getIntExtra("UserID",1)));
+        Query query = QueryBuilder
+                .select(SelectResult.all())
+                .from(DataSource.database(userDatabase));
+        ResultSet rs = query.execute();
+        ArrayList<String> listData = new ArrayList<>();
+
+            //get the value from the data in column, then add it to the ArrayList
+            listData.add(document.getString("name"));
+            //listData.add(rs.allResults().get(i).getString("password"));
+            //listData.add(rs.allResults().get(i).getString("name"));
+            //listData.add(rs.allResults().get(i).getString("extension"));
+
         //create the list adapter and set the adapter
         ListAdapter adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, listData);
         users.setAdapter(adapter);
     }
+
 
     @Override
     public void onBackPressed() {

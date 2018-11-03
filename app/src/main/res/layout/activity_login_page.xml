@@ -37,7 +37,7 @@
         android:text="login" />
 
     <TextView
-        android:id="@+id/loginNeedAccount"
+        android:id="@+id/needAccount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
