@@ -43,7 +43,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     TextView HomeName, HomeUsername;
     Blob myBlob;
     String myUsername, myName, myExtension;
-    private ListView users;
+    //private ListView users;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,21 +96,49 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             Database friendDatabase = new Database("friendList", config);
 
             // Create a new document (i.e. a record) in the database.
-            MutableDocument chatroom = new MutableDocument();
-            chatroom.setBlob("myImage", myBlob);
-            chatroom.setString("myUsername", myUsername);
-            chatroom.setString("myName", myName);
-            chatroom.setString("myExtension", myExtension);
-
+            MutableDocument friendDoc = new MutableDocument();
+            //imply the owner of friends by extension, maybe other info
+            friendDoc.setString("myExtension", myExtension);
             /*
-            *
-            *  a function to get friends' information
-            *
+            friendDoc.setBlob("myImage", myBlob);
+            friendDoc.setString("myUsername", myUsername);
+            friendDoc.setString("myName", myName);
             */
 
             /*
+            * a function to get friends' information and save document
+            *
+            * String friendExtension = getString(otherDevice);
+            * Blob friendImage = getBlob(otherDevice);
+            * String friendUsername = getString(otherDevice);
+            * String friendName = getString(otherDevice);
+            *
+            *
+            * friendDoc.setString("friendExtension", friendExtension);
+            * friendDoc.setBlob("friendImage", friendImage);
+                friendDoc.setString("friendUsername", friendUsername);
+                friendDoc.setString("friendName", friendName);
+            *
+            * Intent intent1 = getIntent();
+            * String chatRoomID = intent1.getStringExtra("ChatRoomID");
+            * friendDoc.setString("chatRoomID", chatRoomID);
+            * friendDatabase.save(friendDoc);
+            *
+            */
+
+
+            /*
+            * Query query = QueryBuilder.select(SelectResult.property("friendExtension"))
+                                .from(DataSource.database(friendDatabase))
+                                .where(Expression.property("myExtension").equalTo(Expression.string(myExtension)));
+            * rs = query.execute();
+            * String chatRoomID = rs.allResults().get(0).getString("chatRoomID");
             *
             * start an intent to new activity and print message according to chatroom ID
+            * Intent intent2 = new Intent(HomeActivity.this, ChatRoom.class);
+            * intent2.putExtra("chatRoomID", chatRoomID);
+            * startActivity(intent2);
+            *
             *
              */
         } catch (CouchbaseLiteException e) {
