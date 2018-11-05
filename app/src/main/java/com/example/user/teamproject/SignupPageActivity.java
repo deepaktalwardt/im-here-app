@@ -125,7 +125,7 @@ public class SignupPageActivity extends AppCompatActivity {
                     while (randNum < 100000000) {
                         randNum = rand.nextInt(1000000000);
                     }
-                    String extension = usernameCol + Integer.toString(randNum);
+                    String extensionCol = usernameCol + Integer.toString(randNum);
 
                     //check data is fulfilled
                     if (imageInByte != null &&
@@ -148,7 +148,7 @@ public class SignupPageActivity extends AppCompatActivity {
                             userDoc.setString("username", usernameCol);
                             userDoc.setString("password", passwordCol);
                             userDoc.setString("name", nameCol);
-                            userDoc.setString("extension", extension);
+                            userDoc.setString("extension", extensionCol);
 
                             // Save it to the database.
                             userDatabase.save(userDoc);
@@ -156,11 +156,10 @@ public class SignupPageActivity extends AppCompatActivity {
                             if (userDatabase.getDocument(userDoc.getId()) != null) {
                                 //do success
                                 Intent intent = new Intent(SignupPageActivity.this, HomeActivity.class);
-                                intent.putExtra("UserID", userDoc.getId());
                                 intent.putExtra("ProfileImage", imageInByte);
                                 intent.putExtra("Name", nameCol);
                                 intent.putExtra("Username", usernameCol);
-                                intent.putExtra("Extension", extension);
+                                intent.putExtra("Extension", extensionCol);
                                 startActivity(intent);
                                 finish();
                             } else {

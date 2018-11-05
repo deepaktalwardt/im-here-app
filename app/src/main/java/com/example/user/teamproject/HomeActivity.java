@@ -24,6 +24,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.couchbase.lite.Blob;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.DataSource;
 import com.couchbase.lite.Database;
@@ -40,14 +41,15 @@ import java.util.ArrayList;
 public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     ImageView HomeImage;
     TextView HomeName, HomeUsername;
+    Blob myBlob;
+    String myUsername, myName, myExtension;
     private ListView users;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-        
+
         //navigation drawer
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -70,11 +72,15 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        //user's information
+        //user's information from previous page
         Intent intent = getIntent();
+        myUsername = intent.getStringExtra("Username");
+        myName = intent.getStringExtra("Name");
+        myExtension = intent.getStringExtra("Extension");
 
         HomeImage = navigationView.getHeaderView(0).findViewById(R.id.NavHeaderImageView);
         byte[] imageInByte = intent.getByteArrayExtra("ProfileImage");
+        myBlob = new Blob("image/*", imageInByte);
         Bitmap bitmap = BitmapFactory.decodeByteArray(imageInByte, 0, imageInByte.length);
         HomeImage.setImageBitmap(bitmap);
 
@@ -84,48 +90,57 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         HomeUsername = navigationView.getHeaderView(0).findViewById(R.id.NavHeaderUsername);
         HomeUsername.setText(intent.getStringExtra("Username"));
 
-        //view users' list purpose, will delete
-        users = findViewById(R.id.listView);
-        /*
-        try {
-            //populateListView();
-        } catch (CouchbaseLiteException e) {
-            e.printStackTrace();
-        }*/
-    }
-
-
-    //view user purpose, will delete
-    private void populateListView() throws CouchbaseLiteException {
-        Intent intent = getIntent();
         // Get the database (and create it if it doesn’t exist).
-        DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
-        Database userDatabase = null;
         try {
-            userDatabase = new Database("userList", config);
+            DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
+            Database friendDatabase = new Database("friendList", config);
+
+            // Create a new document (i.e. a record) in the database.
+            MutableDocument chatroom = new MutableDocument();
+            chatroom.setBlob("myImage", myBlob);
+            chatroom.setString("myUsername", myUsername);
+            chatroom.setString("myName", myName);
+            chatroom.setString("myExtension", myExtension);
+
+            /*
+            *
+            *  a function to get friends' information
+            *
+            */
+
+            /*
+            *
+            * start an intent to new activity and print message according to chatroom ID
+            *
+             */
         } catch (CouchbaseLiteException e) {
             e.printStackTrace();
         }
+/*
+        //view users' list purpose, will delete
+        users = findViewById(R.id.listView);
+        populateListView();
+        */
+    }
+
+/*
+    //view user purpose, will delete
+    private void populateListView() {
+        Intent intent = getIntent();
         //get the data and append to a list
-        MutableDocument userDoc = new MutableDocument();
-        Document document = userDatabase.getDocument(String.valueOf(intent.getIntExtra("UserID",1)));
-        Query query = QueryBuilder
-                .select(SelectResult.all())
-                .from(DataSource.database(userDatabase));
-        ResultSet rs = query.execute();
+        Log.d("doc", String.valueOf(intent.getStringExtra("Username")));
         ArrayList<String> listData = new ArrayList<>();
 
-            //get the value from the data in column, then add it to the ArrayList
-            listData.add(document.getString("name"));
-            //listData.add(rs.allResults().get(i).getString("password"));
-            //listData.add(rs.allResults().get(i).getString("name"));
-            //listData.add(rs.allResults().get(i).getString("extension"));
+        //get the value from the data in column, then add it to the ArrayList
+        listData.add(intent.getStringExtra("Username"));
+        listData.add(intent.getStringExtra("Name"));
+        listData.add(intent.getStringExtra("Extension"));
 
         //create the list adapter and set the adapter
         ListAdapter adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, listData);
         users.setAdapter(adapter);
     }
-
+*/
 
     @Override
     public void onBackPressed() {

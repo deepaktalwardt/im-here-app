@@ -86,10 +86,18 @@ public class LoginPageActivity extends AppCompatActivity {
                                     rs = query.execute();
                                     String nameCol = rs.allResults().get(0).getString("name");
 
+                                    query = QueryBuilder
+                                            .select(SelectResult.property("extension"))
+                                            .from(DataSource.database(userDatabase))
+                                            .where(Expression.property("username").equalTo(Expression.string(usernameCol)));
+                                    rs = query.execute();
+                                    String extensionCol = rs.allResults().get(0).getString("extension");
+
                                     Intent intent = new Intent(LoginPageActivity.this, HomeActivity.class);
                                     intent.putExtra("ProfileImage", imageInByte);
                                     intent.putExtra("Name", nameCol);
                                     intent.putExtra("Username", usernameCol);
+                                    intent.putExtra("Extension", extensionCol);
                                     startActivity(intent);
                                     finish();
                                 }
@@ -138,9 +146,11 @@ public class LoginPageActivity extends AppCompatActivity {
                 //profile info
                 String nameCol = "admin";
                 String usernameCol = "admin";
+                String extensionCol = "admin";
                 intent.putExtra("ProfileImage", imageInByte);
                 intent.putExtra("Name", nameCol);
                 intent.putExtra("Username", usernameCol);
+                intent.putExtra("Extension", extensionCol);
                 startActivity(intent);
                 finish();
             }
