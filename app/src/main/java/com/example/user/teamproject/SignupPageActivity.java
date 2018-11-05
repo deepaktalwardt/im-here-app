@@ -52,6 +52,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import static android.icu.text.MessagePattern.ArgType.SELECT;
@@ -62,7 +64,7 @@ public class SignupPageActivity extends AppCompatActivity {
     ImageView image;
     EditText signupUsername, signupPassword, signupName;
     TextView signupHaveAccount;
-    int upload = 0;
+    int upload = 0, randNum;
     InputStream is;
     Blob blob;
     Random rand = new Random();
@@ -72,20 +74,6 @@ public class SignupPageActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup_page);
-
-        // Get the database (and create it if it doesn’t exist).
-        DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
-        Database userDatabase = null;
-        try {
-            userDatabase = new Database("userList", config);
-        } catch (CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
-
-        final Database finalUserDatabase = userDatabase;
-        // Create a new document (i.e. a record) in the database.
-        final MutableDocument userDoc = new MutableDocument();
-
 
         image = findViewById(R.id.signupProfileImage);
         loadPicture = findViewById(R.id.btn_loadPicture);
@@ -99,86 +87,96 @@ public class SignupPageActivity extends AppCompatActivity {
             }
         });
 
+
         signupUsername = findViewById(R.id.signupUsername);
         signupPassword = findViewById(R.id.signupPassword);
         signupName = findViewById(R.id.signupName);
 
         signup = findViewById(R.id.btn_signup);
+        try {
+            // Get the database (and create it if it doesn’t exist).
+            DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
+            final Database userDatabase = new Database("userList", config);
 
-        signup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Bitmap bitmap;
-                // get image from drawable
-                if (upload == 0) {
-                    bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_profile_image);
-                } else {
-                    image.buildDrawingCache();
-                    bitmap = image.getDrawingCache();
-                }
-                Log.d("sign", String.valueOf(bitmap));
-                // convert bitmap to byte
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                byte imageInByte[] = stream.toByteArray();
+            // Create a new document (i.e. a record) in the database.
+            final MutableDocument userDoc = new MutableDocument();
 
-                String usernameCol = signupUsername.getText().toString();
-                String passwordCol = signupPassword.getText().toString();
-                String nameCol = signupName.getText().toString();
-                rand.nextInt(1000000000);
-                String extension = usernameCol + rand.toString();
-
-                //check data is fulfilled
-                if (imageInByte != null &&
-                        usernameCol.length() != 0 &&
-                        passwordCol.length() != 0 &&
-                        nameCol.length() != 0) {
-                    //check if username is used
-                    Query query = QueryBuilder
-                            .select(SelectResult.all())
-                            .from(DataSource.database(finalUserDatabase))
-                            .where(Expression.property("username").equalTo(Expression.string(usernameCol)));
-                    try {
-                        ResultSet rs = query.execute();
-                        if (rs.allResults().size() > 0) {
-                            //get the value from the data in username
-                            toastNote("Username is used");
-                            signupUsername.setText("");
-                            signupPassword.setText("");
-                            return;
-                        }
-                    } catch (CouchbaseLiteException e) {
-                        e.printStackTrace();
-                    }
-                    userDoc.setBlob("image", blob);
-                    userDoc.setString("username", usernameCol);
-                    userDoc.setString("password", passwordCol);
-                    userDoc.setString("name", nameCol);
-                    userDoc.setString("extension", extension);
-                    try {
-                        // Save it to the database.
-                        finalUserDatabase.save(userDoc);
-                    } catch (CouchbaseLiteException e) {
-                        e.printStackTrace();
-                    }
-                    if (finalUserDatabase.getDocument(userDoc.getId()) != null) {
-                        //do success
-                        Intent intent = new Intent(SignupPageActivity.this, HomeActivity.class);
-                        intent.putExtra("UserID", userDoc.getId());
-                        intent.putExtra("ProfileImage", imageInByte);
-                        intent.putExtra("Name", nameCol);
-                        intent.putExtra("Username", usernameCol);
-                        intent.putExtra("Extension", extension);
-                        startActivity(intent);
-                        finish();
+            signup.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Bitmap bitmap;
+                    // get image from drawable
+                    if (upload == 0) {
+                        bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_profile_image);
                     } else {
-                        toastNote("Signup failed. Please check input");
+                        image.buildDrawingCache();
+                        bitmap = image.getDrawingCache();
                     }
-                } else {
-                    toastNote("Information is not enough");
+
+                    // convert bitmap to byte
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                    byte imageInByte[] = stream.toByteArray();
+                    blob = new Blob("image/*", imageInByte);
+
+                    String usernameCol = signupUsername.getText().toString();
+                    String passwordCol = signupPassword.getText().toString();
+                    String nameCol = signupName.getText().toString();
+                    while (randNum < 100000000) {
+                        randNum = rand.nextInt(1000000000);
+                    }
+                    String extension = usernameCol + Integer.toString(randNum);
+
+                    //check data is fulfilled
+                    if (imageInByte != null &&
+                            usernameCol.length() != 0 &&
+                            passwordCol.length() != 0 &&
+                            nameCol.length() != 0) {
+                        //check if username is used
+                        Query query = QueryBuilder.select(SelectResult.property("username"))
+                                .from(DataSource.database(userDatabase))
+                                .where(Expression.property("username").equalTo(Expression.string(usernameCol)));
+                        try {
+                            ResultSet result = query.execute();
+                            if (result.allResults().size() != 0) {
+                                toastNote("Username is used");
+                                signupUsername.setText("");
+                                signupPassword.setText("");
+                                return;
+                            }
+                            userDoc.setBlob("image", blob);
+                            userDoc.setString("username", usernameCol);
+                            userDoc.setString("password", passwordCol);
+                            userDoc.setString("name", nameCol);
+                            userDoc.setString("extension", extension);
+
+                            // Save it to the database.
+                            userDatabase.save(userDoc);
+
+                            if (userDatabase.getDocument(userDoc.getId()) != null) {
+                                //do success
+                                Intent intent = new Intent(SignupPageActivity.this, HomeActivity.class);
+                                intent.putExtra("UserID", userDoc.getId());
+                                intent.putExtra("ProfileImage", imageInByte);
+                                intent.putExtra("Name", nameCol);
+                                intent.putExtra("Username", usernameCol);
+                                intent.putExtra("Extension", extension);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                toastNote("Signup failed. Please check input");
+                            }
+                        } catch (CouchbaseLiteException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        toastNote("Information is not enough");
+                    }
                 }
-            }
-        });
+            });
+        } catch (CouchbaseLiteException e) {
+            e.printStackTrace();
+        }
 
         //link to login page if user has an account
         signupHaveAccount = findViewById(R.id.signupHaveAccount);
@@ -186,6 +184,8 @@ public class SignupPageActivity extends AppCompatActivity {
         ClickableSpan clickableSpan = new ClickableSpan() {
             @Override
             public void onClick(View widget) {
+                Intent intent = new Intent(SignupPageActivity.this, LoginPageActivity.class);
+                startActivity(intent);
                 finish();
             }
         };
@@ -204,8 +204,6 @@ public class SignupPageActivity extends AppCompatActivity {
                 final InputStream imageStream = getContentResolver().openInputStream(imageUri);
                 final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
                 image.setImageBitmap(selectedImage);
-                is = imageStream;
-                blob = new Blob("image/*", is);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
                 toastNote("Something went wrong");
@@ -214,51 +212,7 @@ public class SignupPageActivity extends AppCompatActivity {
             toastNote("You haven't picked Image");
         }
     }
-/*
-    public void createDB() throws CouchbaseLiteException, URISyntaxException {
 
-        // Save it to the database.
-        userDatabase.save(mutableDoc);
-
-        // Update a document.
-        mutableDoc = userDatabase.getDocument(mutableDoc.getId()).toMutable();
-        userDatabase.save(mutableDoc);
-        Document document = userDatabase.getDocument(mutableDoc.getId());
-        // Log the document ID (generated by the database) and properties
-        Log.i("LoginPageActivity", "Document ID :: " + document.getId());
-        Log.i("LoginPageActivity", "Learning " + document.getString("language"));
-
-        // Create a query to fetch documents of type SDK.
-        Query query = QueryBuilder.select(SelectResult.all())
-                .from(DataSource.database(userDatabase))
-                .where(Expression.property("type").equalTo(Expression.string("SDK")));
-        ResultSet result = query.execute();
-        Log.i("LoginPageActivity", "Number of rows ::  " + result.allResults().size());
-
-        // Create replicators to push and pull changes to and from the cloud.
-        Endpoint targetEndpoint = new URLEndpoint(new URI("ws://localhost:4984/example_sg_db"));
-        ReplicatorConfiguration replConfig = new ReplicatorConfiguration(userDatabase, targetEndpoint);
-        replConfig.setReplicatorType(ReplicatorConfiguration.ReplicatorType.PUSH_AND_PULL);
-
-        // Add authentication.
-        replConfig.setAuthenticator(new BasicAuthenticator("john", "pass"));
-
-        // Create replicator.
-        Replicator replicator = new Replicator(replConfig);
-
-        // Listen to replicator change events.
-        replicator.addChangeListener(new ReplicatorChangeListener() {
-            @Override
-            public void changed(ReplicatorChange change) {
-                if (change.getStatus().getError() != null)
-                    Log.i("LoginPageActivity", "Error code ::  " + change.getStatus().getError().getCode());
-            }
-        });
-
-        // Start replication.
-        replicator.start();
-    }
-*/
     public void toastNote(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }

@@ -75,7 +75,6 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
         HomeImage = navigationView.getHeaderView(0).findViewById(R.id.NavHeaderImageView);
         byte[] imageInByte = intent.getByteArrayExtra("ProfileImage");
-        Log.d("imagebyte", String.valueOf(imageInByte));
         Bitmap bitmap = BitmapFactory.decodeByteArray(imageInByte, 0, imageInByte.length);
         HomeImage.setImageBitmap(bitmap);
 
@@ -87,11 +86,12 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
         //view users' list purpose, will delete
         users = findViewById(R.id.listView);
+        /*
         try {
-            populateListView();
+            //populateListView();
         } catch (CouchbaseLiteException e) {
             e.printStackTrace();
-        }
+        }*/
     }
 
 
