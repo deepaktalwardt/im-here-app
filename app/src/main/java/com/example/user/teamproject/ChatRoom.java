@@ -8,14 +8,21 @@ import android.widget.ListAdapter;
 
 import com.couchbase.lite.Array;
 import com.couchbase.lite.CouchbaseLiteException;
+import com.couchbase.lite.DataSource;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.DatabaseConfiguration;
+import com.couchbase.lite.Expression;
 import com.couchbase.lite.MutableArray;
 import com.couchbase.lite.MutableDocument;
+import com.couchbase.lite.Query;
+import com.couchbase.lite.QueryBuilder;
+import com.couchbase.lite.ResultSet;
+import com.couchbase.lite.SelectResult;
 
 import java.util.ArrayList;
 
 public class ChatRoom extends AppCompatActivity {
+    String myExtension, friendExtension, referChatRoom, chatRoomID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,22 +31,28 @@ public class ChatRoom extends AppCompatActivity {
 
         //Textfield = findViewByID();
 
-        String chatRoomID;
+
         Intent intent = getIntent();
-        chatRoomID = intent.getStringExtra("ChatRoom");
+        referChatRoom = intent.getStringExtra("ReferChatRoom");
+        MutableDocument chatRoom;
 
         try {
             DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
             Database chatRoomDatabase = new Database("chatRooms", config);
-            MutableDocument chatRoom;
 
-            if (chatRoomID == null) {
+            Query query = QueryBuilder.select(SelectResult.property("chatRoomID"))
+                    .from(DataSource.database(chatRoomDatabase))
+                    .where(Expression.property("referChatRoom").equalTo(Expression.string(referChatRoom)));
+            ResultSet rs = query.execute();
+
+            if(rs.allResults().size() == 1){
+                rs = query.execute();
+                chatRoomID = rs.allResults().get(0).getString("chatRoomID");
+                chatRoom = chatRoomDatabase.getDocument(chatRoomID).toMutable();
+            }else{
                 // Create a new document (i.e. a record) in the database.
                 chatRoom = new MutableDocument();
-                Intent intent1 = new Intent(ChatRoom.this, HomeActivity.class);
-                intent1.putExtra("ChatRoomID", chatRoom.getId());
-            } else {
-                chatRoom = chatRoomDatabase.getDocument(chatRoomID).toMutable();
+                chatRoom.setString("chatRoomID", chatRoom.getId());
             }
 
             /*
@@ -70,6 +83,7 @@ public class ChatRoom extends AppCompatActivity {
                 messageWall(chatroom);
             }
             chatRoomDatabase.save(chatroom);
+            finish();
             */
         } catch (CouchbaseLiteException e) {
             e.printStackTrace();
@@ -83,8 +97,8 @@ public class ChatRoom extends AppCompatActivity {
 
         //get the data and append to a list
         ArrayList<String> listData = new ArrayList<>();
-        for(int i = 0; i < 20; i++){
-            for(int j = 0; j < 3; j++) {
+        for (int i = 0; i < 20; i++) {
+            for (int j = 0; j < 3; j++) {
                 String[] message = new String[3];
                 message[j] = messageArray.getArray(i).getString(j);
                 listData.add(message[j]);

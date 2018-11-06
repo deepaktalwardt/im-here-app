@@ -42,7 +42,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     ImageView HomeImage;
     TextView HomeName, HomeUsername;
     Blob myBlob;
-    String myUsername, myName, myExtension;
+    byte[] imageInByte;
+    String myUsername, myName, myExtension, friendExtension;
     //private ListView users;
 
     @Override
@@ -60,6 +61,15 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
+                /*
+                Intent intent = new Intent(HomeActivity.this, SearchList.class);
+                intent.putExtra("Extension", extensionCol);
+
+                intent.putExtra("ProfileImage", imageInByte);
+                intent.putExtra("Name", nameCol);
+                intent.putExtra("Username", usernameCol);
+                startActivity(intent);
+                */
             }
         });
 
@@ -74,14 +84,16 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
         //user's information from previous page
         Intent intent = getIntent();
+        imageInByte = intent.getByteArrayExtra("ProfileImage");
+        myBlob = new Blob("image/*", imageInByte);
+        Bitmap bitmap = BitmapFactory.decodeByteArray(imageInByte, 0, imageInByte.length);
+
         myUsername = intent.getStringExtra("Username");
         myName = intent.getStringExtra("Name");
         myExtension = intent.getStringExtra("Extension");
 
+        //navigation header read user info
         HomeImage = navigationView.getHeaderView(0).findViewById(R.id.NavHeaderImageView);
-        byte[] imageInByte = intent.getByteArrayExtra("ProfileImage");
-        myBlob = new Blob("image/*", imageInByte);
-        Bitmap bitmap = BitmapFactory.decodeByteArray(imageInByte, 0, imageInByte.length);
         HomeImage.setImageBitmap(bitmap);
 
         HomeName = navigationView.getHeaderView(0).findViewById(R.id.NavHeaderName);
@@ -90,53 +102,33 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         HomeUsername = navigationView.getHeaderView(0).findViewById(R.id.NavHeaderUsername);
         HomeUsername.setText(intent.getStringExtra("Username"));
 
-        // Get the database (and create it if it doesn’t exist).
         try {
+            // Get the database (and create it if it doesn’t exist).
             DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
             Database friendDatabase = new Database("friendList", config);
 
-            // Create a new document (i.e. a record) in the database.
-            MutableDocument friendDoc = new MutableDocument();
-            //imply the owner of friends by extension, maybe other info
-            friendDoc.setString("myExtension", myExtension);
             /*
-            friendDoc.setBlob("myImage", myBlob);
-            friendDoc.setString("myUsername", myUsername);
-            friendDoc.setString("myName", myName);
-            */
-
-            /*
-            * a function to get friends' information and save document
+            * //list all friend
             *
-            * String friendExtension = getString(otherDevice);
-            * Blob friendImage = getBlob(otherDevice);
-            * String friendUsername = getString(otherDevice);
-            * String friendName = getString(otherDevice);
-            *
-            *
-            * friendDoc.setString("friendExtension", friendExtension);
-            * friendDoc.setBlob("friendImage", friendImage);
-                friendDoc.setString("friendUsername", friendUsername);
-                friendDoc.setString("friendName", friendName);
-            *
-            * Intent intent1 = getIntent();
-            * String chatRoomID = intent1.getStringExtra("ChatRoomID");
-            * friendDoc.setString("chatRoomID", chatRoomID);
-            * friendDatabase.save(friendDoc);
-            *
-            */
-
-
-            /*
             * Query query = QueryBuilder.select(SelectResult.property("friendExtension"))
                                 .from(DataSource.database(friendDatabase))
                                 .where(Expression.property("myExtension").equalTo(Expression.string(myExtension)));
             * rs = query.execute();
-            * String chatRoomID = rs.allResults().get(0).getString("chatRoomID");
+            * int i = 0;
+            * String referChatRoom;
+            * while( i < rs.allResults().size()){
+            *   rs = query.execute();
+            *   referChatRoom = rs.allResults().get(i).getString("referChatRoom");
+            *   ...
+            * }
             *
-            * start an intent to new activity and print message according to chatroom ID
+            * //onclick any friend
+            *
+            * get(referChatRoom);
+            *
+            * start an intent to new activity according to ref of chatroom
             * Intent intent2 = new Intent(HomeActivity.this, ChatRoom.class);
-            * intent2.putExtra("chatRoomID", chatRoomID);
+            * intent2.putExtra("ReferChatRoom", referChatRoom);
             * startActivity(intent2);
             *
             *
