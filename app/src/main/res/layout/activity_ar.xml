@@ -14,8 +14,9 @@
         android:layout_height="wrap_content"
         android:id="@+id/text_view"
         android:text="Welcome to AR world"
-        android:textSize="20sp"
+        android:textSize="30sp"
         android:textColor="@color/common_google_signin_btn_text_dark"
-        android:layout_alignParentBottom="true"/>
+        android:layout_alignParentTop="true"
+        />
 
 </RelativeLayout>
