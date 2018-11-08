@@ -16,7 +16,15 @@
         android:text="Welcome to AR world"
         android:textSize="30sp"
         android:textColor="@color/common_google_signin_btn_text_dark"
-        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
         />
+
+    <ImageView
+        android:id="@+id/arrow"
+        android:layout_width="100dp"
+        android:layout_height="120dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerInParent="true"
+        android:src="@drawable/arrow3"/>
 
 </RelativeLayout>

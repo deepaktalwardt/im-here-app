@@ -17,7 +17,9 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,6 +38,7 @@ import java.io.IOException;
 public class ARActivity extends AppCompatActivity implements SensorEventListener {
     SurfaceView cameraView;
     TextView textView;
+    ImageView arrow;
     CameraSource cameraSource;
     final int REQUEST_CAMERA_PERMISSION_ID = 1001;
 
@@ -66,7 +69,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 
         cameraView = (SurfaceView) findViewById(R.id.surface_view);
         textView = (TextView) findViewById(R.id.text_view);
-
+        arrow = findViewById(R.id.arrow);
         TextRecognizer textRecognizer = new TextRecognizer.Builder(getApplicationContext()).build();
         if (!textRecognizer.isOperational()) {
             Log.w("AR", "We fucked up");
@@ -178,6 +181,12 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
             direciton = "";
         }
         textView.setText(Integer.toString(degree) + (char) 0x00B0 + "  " + direciton);
+
+        RotateAnimation rotateAnimation = new RotateAnimation(curDegree, -degree,
+                Animation.RELATIVE_TO_SELF, 0.5f,Animation.RELATIVE_TO_SELF, 0.5f);
+        rotateAnimation.setDuration(1000);
+        rotateAnimation.setFillAfter(true);
+        arrow.startAnimation(rotateAnimation);
         curDegree = -degree;
     }
 
