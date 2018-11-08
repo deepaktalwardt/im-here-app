@@ -43,8 +43,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     TextView HomeName, HomeUsername;
     Blob myBlob;
     byte[] imageInByte;
-    String myUsername, myName, myExtension, friendExtension;
-    //private ListView users;
+    String myUsername, myName, myDeviceId, friendExtension;
+    private ListView users;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,7 +90,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
         myUsername = intent.getStringExtra("Username");
         myName = intent.getStringExtra("Name");
-        myExtension = intent.getStringExtra("Extension");
+        myDeviceId = intent.getStringExtra("DeviceId");
 
         //navigation header read user info
         HomeImage = navigationView.getHeaderView(0).findViewById(R.id.NavHeaderImageView);
@@ -136,31 +136,28 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         } catch (CouchbaseLiteException e) {
             e.printStackTrace();
         }
-/*
+
         //view users' list purpose, will delete
         users = findViewById(R.id.listView);
         populateListView();
-        */
+
     }
 
-/*
     //view user purpose, will delete
     private void populateListView() {
-        Intent intent = getIntent();
         //get the data and append to a list
-        Log.d("doc", String.valueOf(intent.getStringExtra("Username")));
         ArrayList<String> listData = new ArrayList<>();
 
         //get the value from the data in column, then add it to the ArrayList
-        listData.add(intent.getStringExtra("Username"));
-        listData.add(intent.getStringExtra("Name"));
-        listData.add(intent.getStringExtra("Extension"));
+        listData.add(myUsername);
+        listData.add(myName);
+        listData.add(myDeviceId);
 
         //create the list adapter and set the adapter
         ListAdapter adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, listData);
         users.setAdapter(adapter);
     }
-*/
+
 
     @Override
     public void onBackPressed() {

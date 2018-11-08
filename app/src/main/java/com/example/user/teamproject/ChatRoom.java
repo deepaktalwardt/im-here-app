@@ -55,36 +55,34 @@ public class ChatRoom extends AppCompatActivity {
                 chatRoom.setString("chatRoomID", chatRoom.getId());
             }
 
-            /*
+/*
             while(connected){
-                Array[] messageArray = new Array[20];
+                String[][] messageArray = new String[20][3];
 
-                sendBtn.setOnclickListener{
-                    Array[] message = new Array[3];
-                    String text = Textfield.getText();
-                    String speaker = user.getText();
-                    String time = deviceTime.getText();
-
-                    message[0] = text;
-                    message[1] = speaker;
-                    message[2] = time;
+                sendBtn.setOnclickListener(){
                     for(int i = 0; i < 20; i++){
                         if(messageArray[i] == null){
-                            messageArray[i] = message;
+                            messageArray[i][0] = user.getText();
+                            messageArray[i][1] = Textfield.getText();
+                            messageArray[i][2] = deviceTime.toString();
                         }else if(messageArray[19] != null){
                             for(int j = 0; j < 19; j++){
-                                messageArray[j] = messageArray[j+1];
+                                messageArray[j][0] = messageArray[j+1][0];
+                                messageArray[j][1] = messageArray[j+1][1];
+                                messageArray[j][2] = messageArray[j+1][2];
                             }
-                            messageArray[19] = message;
+                            messageArray[19][0] = user.getText();
+                            messageArray[19][1] = Textfield.getText();
+                            messageArray[19][2] = deviceTime.toString();
                         }
                     }
-                    chatRoom.setArray("messageArray", messageArray);
+                    chatRoom.setValue("messageArray", messageArray);
                 }
-                messageWall(chatroom);
+                messageWall(chatRoom);
             }
-            chatRoomDatabase.save(chatroom);
+            chatRoomDatabase.save(chatRoom);
             finish();
-            */
+*/
         } catch (CouchbaseLiteException e) {
             e.printStackTrace();
         }

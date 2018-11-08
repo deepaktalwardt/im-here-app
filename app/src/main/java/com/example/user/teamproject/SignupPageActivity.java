@@ -1,62 +1,41 @@
 package com.example.user.teamproject;
 
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
-import android.provider.MediaStore;
-import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
-import android.util.Log;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.couchbase.lite.BasicAuthenticator;
 import com.couchbase.lite.Blob;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.DataSource;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.DatabaseConfiguration;
-import com.couchbase.lite.Document;
-import com.couchbase.lite.Endpoint;
 import com.couchbase.lite.Expression;
-import com.couchbase.lite.From;
 import com.couchbase.lite.MutableDocument;
 import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryBuilder;
-import com.couchbase.lite.Replicator;
-import com.couchbase.lite.ReplicatorChange;
-import com.couchbase.lite.ReplicatorChangeListener;
-import com.couchbase.lite.ReplicatorConfiguration;
 import com.couchbase.lite.ResultSet;
 import com.couchbase.lite.SelectResult;
-import com.couchbase.lite.URLEndpoint;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
-import static android.icu.text.MessagePattern.ArgType.SELECT;
+import android.provider.Settings.Secure;
+
 
 public class SignupPageActivity extends AppCompatActivity {
     public static final int RESULT_LOAD_IMG = 1;
@@ -122,10 +101,8 @@ public class SignupPageActivity extends AppCompatActivity {
                     String usernameCol = signupUsername.getText().toString();
                     String passwordCol = signupPassword.getText().toString();
                     String nameCol = signupName.getText().toString();
-                    while (randNum < 100000000) {
-                        randNum = rand.nextInt(1000000000);
-                    }
-                    String extensionCol = usernameCol + Integer.toString(randNum);
+                    //getting unique id for device
+                    String deviceIdCol = Secure.getString(getContentResolver(), Secure.ANDROID_ID);
 
                     //check data is fulfilled
                     if (imageInByte != null &&
@@ -148,7 +125,7 @@ public class SignupPageActivity extends AppCompatActivity {
                             userDoc.setString("username", usernameCol);
                             userDoc.setString("password", passwordCol);
                             userDoc.setString("name", nameCol);
-                            userDoc.setString("extension", extensionCol);
+                            userDoc.setString("deviceId", deviceIdCol);
 
                             // Save it to the database.
                             userDatabase.save(userDoc);
@@ -159,7 +136,7 @@ public class SignupPageActivity extends AppCompatActivity {
                                 intent.putExtra("ProfileImage", imageInByte);
                                 intent.putExtra("Name", nameCol);
                                 intent.putExtra("Username", usernameCol);
-                                intent.putExtra("Extension", extensionCol);
+                                intent.putExtra("DeviceId", deviceIdCol);
                                 startActivity(intent);
                                 finish();
                             } else {

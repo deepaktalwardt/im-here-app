@@ -3,6 +3,7 @@ package com.example.user.teamproject;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.SpannableString;
@@ -50,7 +51,6 @@ public class LoginPageActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     try {
-                        boolean result = false;
                         String usernameCol = loginUsername.getText().toString();
                         String passwordCol = loginPassword.getText().toString();
 
@@ -59,52 +59,49 @@ public class LoginPageActivity extends AppCompatActivity {
                                 .from(DataSource.database(userDatabase))
                                 .where(Expression.property("username").equalTo(Expression.string(usernameCol)));
                         ResultSet rs = query.execute();
-                        if (rs.allResults().size() > 0) {
-                            //check if username is existed
+
+                        //check if username is existed
+                        if (rs.allResults().size() == 1) {
+                            //if username existed, check password
+                            query = QueryBuilder
+                                    .select(SelectResult.property("password"))
+                                    .from(DataSource.database(userDatabase))
+                                    .where(Expression.property("username").equalTo(Expression.string(usernameCol)));
                             rs = query.execute();
-                            if (rs.allResults().get(0).getString("username").equals(usernameCol)) {
-                                //if username existed, check password
+                            if (rs.allResults().get(0).getString("password").equals(passwordCol)) {
                                 query = QueryBuilder
-                                        .select(SelectResult.property("password"))
+                                        .select(SelectResult.property("image"))
                                         .from(DataSource.database(userDatabase))
                                         .where(Expression.property("username").equalTo(Expression.string(usernameCol)));
                                 rs = query.execute();
-                                if (rs.allResults().get(0).getString("password").equals(passwordCol)) {
-                                    result = true;
+                                byte[] imageInByte = rs.allResults().get(0).getBlob("image").getContent();
 
-                                    query = QueryBuilder
-                                            .select(SelectResult.property("image"))
-                                            .from(DataSource.database(userDatabase))
-                                            .where(Expression.property("username").equalTo(Expression.string(usernameCol)));
-                                    rs = query.execute();
-                                    byte[] imageInByte = rs.allResults().get(0).getBlob("image").getContent();
+                                query = QueryBuilder
+                                        .select(SelectResult.property("name"))
+                                        .from(DataSource.database(userDatabase))
+                                        .where(Expression.property("username").equalTo(Expression.string(usernameCol)));
+                                rs = query.execute();
+                                String nameCol = rs.allResults().get(0).getString("name");
 
-                                    query = QueryBuilder
-                                            .select(SelectResult.property("name"))
-                                            .from(DataSource.database(userDatabase))
-                                            .where(Expression.property("username").equalTo(Expression.string(usernameCol)));
-                                    rs = query.execute();
-                                    String nameCol = rs.allResults().get(0).getString("name");
+                                query = QueryBuilder
+                                        .select(SelectResult.property("deviceId"))
+                                        .from(DataSource.database(userDatabase))
+                                        .where(Expression.property("username").equalTo(Expression.string(usernameCol)));
+                                rs = query.execute();
+                                String deviceIdCol = rs.allResults().get(0).getString("deviceId");
 
-                                    query = QueryBuilder
-                                            .select(SelectResult.property("extension"))
-                                            .from(DataSource.database(userDatabase))
-                                            .where(Expression.property("username").equalTo(Expression.string(usernameCol)));
-                                    rs = query.execute();
-                                    String extensionCol = rs.allResults().get(0).getString("extension");
-
-                                    Intent intent = new Intent(LoginPageActivity.this, HomeActivity.class);
-                                    intent.putExtra("ProfileImage", imageInByte);
-                                    intent.putExtra("Name", nameCol);
-                                    intent.putExtra("Username", usernameCol);
-                                    intent.putExtra("Extension", extensionCol);
-                                    startActivity(intent);
-                                    finish();
-                                }
+                                Intent intent = new Intent(LoginPageActivity.this, HomeActivity.class);
+                                intent.putExtra("ProfileImage", imageInByte);
+                                intent.putExtra("Name", nameCol);
+                                intent.putExtra("Username", usernameCol);
+                                intent.putExtra("DeviceId", deviceIdCol);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                toastNote("Password is invalid");
                             }
-                        }
-                        if (!result) {
-                            toastNote("Username/password is invalid");
+                        } else {
+                            toastNote("Username is not exist");
                         }
                     } catch (CouchbaseLiteException e) {
                         e.printStackTrace();
@@ -146,11 +143,11 @@ public class LoginPageActivity extends AppCompatActivity {
                 //profile info
                 String nameCol = "admin";
                 String usernameCol = "admin";
-                String extensionCol = "admin";
+                String deviceIdCol = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
                 intent.putExtra("ProfileImage", imageInByte);
                 intent.putExtra("Name", nameCol);
                 intent.putExtra("Username", usernameCol);
-                intent.putExtra("Extension", extensionCol);
+                intent.putExtra("DeviceId", deviceIdCol);
                 startActivity(intent);
                 finish();
             }
