@@ -22,7 +22,8 @@ import com.couchbase.lite.SelectResult;
 import java.util.ArrayList;
 
 public class ChatRoom extends AppCompatActivity {
-    String myExtension, friendExtension, referChatRoom, chatRoomID;
+    String myDeviceId, friendDeviceId, chatRoomID;
+    boolean chatRoomExist = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,21 +34,31 @@ public class ChatRoom extends AppCompatActivity {
 
 
         Intent intent = getIntent();
-        referChatRoom = intent.getStringExtra("ReferChatRoom");
+        myDeviceId = intent.getStringExtra("MyDeviceId");
+        friendDeviceId = intent.getStringExtra("FriendDeviceId");
         MutableDocument chatRoom;
 
         try {
             DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
             Database chatRoomDatabase = new Database("chatRooms", config);
 
-            Query query = QueryBuilder.select(SelectResult.property("chatRoomID"))
+            Query query = QueryBuilder.select(SelectResult.property("friendDeviceId"))
                     .from(DataSource.database(chatRoomDatabase))
-                    .where(Expression.property("referChatRoom").equalTo(Expression.string(referChatRoom)));
+                    .where(Expression.property("myDeviceId").equalTo(Expression.string(myDeviceId)));
             ResultSet rs = query.execute();
-
-            if(rs.allResults().size() == 1){
+            int size = rs.allResults().size();
+            for(int i = 0; i < size; i++){
                 rs = query.execute();
-                chatRoomID = rs.allResults().get(0).getString("chatRoomID");
+                if(rs.allResults().get(i).equals(friendDeviceId)){
+                    chatRoomExist = true;
+                    query = QueryBuilder.select(SelectResult.property("chatRoomID"))
+                            .from(DataSource.database(chatRoomDatabase))
+                            .where(Expression.property("myDeviceId").equalTo(Expression.string(myDeviceId)));
+                    rs = query.execute();
+                    chatRoomID = rs.allResults().get(i).getString("chatRoomID");
+                }
+            }
+            if(chatRoomExist){
                 chatRoom = chatRoomDatabase.getDocument(chatRoomID).toMutable();
             }else{
                 // Create a new document (i.e. a record) in the database.

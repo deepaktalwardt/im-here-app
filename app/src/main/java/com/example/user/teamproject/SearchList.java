@@ -14,13 +14,13 @@ import com.couchbase.lite.MutableDocument;
 public class SearchList extends AppCompatActivity {
     Blob myBlob;
     byte[] imageInByte;
-    String myUsername, myName, myExtension, referChatRoom;
+    String myUsername, myName, myDeviceId, referChatRoom;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Intent intent = getIntent();
-        myExtension = intent.getStringExtra("Extension");
+        myDeviceId = intent.getStringExtra("DeviceId");
         /*
         imageInByte = intent.getByteArrayExtra("ProfileImage");
         myBlob = new Blob("image/*", imageInByte);
@@ -38,7 +38,7 @@ public class SearchList extends AppCompatActivity {
             MutableDocument friendDoc = new MutableDocument();
 
             //imply the owner of friends by extension, maybe other info
-            friendDoc.setString("myExtension", myExtension);
+            friendDoc.setString("myDeviceId", myDeviceId);
             /*
             friendDoc.setBlob("myImage", myBlob);
             friendDoc.setString("myUsername", myUsername);
@@ -48,25 +48,23 @@ public class SearchList extends AppCompatActivity {
             /*
             * a function to get friends' information and save document
             *
-            * String friendExtension = getString(otherDevice);
+            * String friendDeviceId = getString(otherDevice);
             * Blob friendImage = getBlob(otherDevice);
             * String friendUsername = getString(otherDevice);
             * String friendName = getString(otherDevice);
             *
             *
-            * friendDoc.setString("friendExtension", friendExtension);
+            * friendDoc.setString("friendDeviceId", friendDeviceId);
             * friendDoc.setBlob("friendImage", friendImage);
                 friendDoc.setString("friendUsername", friendUsername);
                 friendDoc.setString("friendName", friendName);
             *
-            *
-            * referChatRoom = friendDoc.getId();
-            * friendDoc.setString("referChatRoom", referChatRoom)
             * friendDatabase.save(friendDoc);
             *
-            * //start an intent to new activity according to ref of chatroom
+            * //start an intent to new activity
             * Intent intent1 = new Intent(SearchList.this, ChatRoom.class);
-            * intent2.putExtra("ReferChatRoom", referChatRoom);
+            * intent.putExtra("MyDeviceId", myDeviceId);
+            * intent.putExtra("FriendDeviceId", friendDeviceId);
             * startActivity(intent1);
             * finish();
             *
