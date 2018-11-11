@@ -44,7 +44,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     TextView HomeName, HomeUsername;
     Blob myBlob;
     byte[] imageInByte;
-    String myUsername, myName, myDeviceId, friendExtension;
+    String myUsername, myName, myDeviceId, myUserDocId;
     //private ListView users;
 
     @Override
@@ -89,6 +89,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         myBlob = new Blob("image/*", imageInByte);
         Bitmap bitmap = BitmapFactory.decodeByteArray(imageInByte, 0, imageInByte.length);
 
+        myUserDocId = intent.getStringExtra("UserDocId");
         myUsername = intent.getStringExtra("Username");
         myName = intent.getStringExtra("Name");
         myDeviceId = intent.getStringExtra("DeviceId");
@@ -219,6 +220,19 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         } else if (id == R.id.action_settings) {
 
         } else if (id == R.id.nav_logout) {
+            try {
+                // Get the database (and create it if it doesn’t exist).
+                DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
+                Database userDatabase = new Database("userList", config);
+                Intent intent = getIntent();
+                String userDocId = intent.getStringExtra("UserDocId");
+                Log.d("ID", userDocId);
+                MutableDocument userDoc = userDatabase.getDocument(userDocId).toMutable();
+                userDoc.setString("hasLogin", "false");
+                userDatabase.save(userDoc);
+            } catch (CouchbaseLiteException e) {
+                e.printStackTrace();
+            }
             Intent intent = new Intent(HomeActivity.this, LoginPageActivity.class);
             startActivity(intent);
             finish();

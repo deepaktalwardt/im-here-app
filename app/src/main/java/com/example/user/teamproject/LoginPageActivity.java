@@ -22,6 +22,7 @@ import com.couchbase.lite.DataSource;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.DatabaseConfiguration;
 import com.couchbase.lite.Expression;
+import com.couchbase.lite.MutableDocument;
 import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryBuilder;
 import com.couchbase.lite.ResultSet;
@@ -51,50 +52,40 @@ public class LoginPageActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     try {
-                        String usernameCol = loginUsername.getText().toString();
-                        String passwordCol = loginPassword.getText().toString();
+                        String username = loginUsername.getText().toString();
+                        String password = loginPassword.getText().toString();
 
                         Query query = QueryBuilder
                                 .select(SelectResult.property("username"))
                                 .from(DataSource.database(userDatabase))
-                                .where(Expression.property("username").equalTo(Expression.string(usernameCol)));
+                                .where(Expression.property("username").equalTo(Expression.string(username)));
                         ResultSet rs = query.execute();
 
-                        //check if username is existed
+                        //check if username is existed and only one in db
                         if (rs.allResults().size() == 1) {
-                            //if username existed, check password
+                            //get document
                             query = QueryBuilder
-                                    .select(SelectResult.property("password"))
+                                    .select(SelectResult.property("userDocId"))
                                     .from(DataSource.database(userDatabase))
-                                    .where(Expression.property("username").equalTo(Expression.string(usernameCol)));
+                                    .where(Expression.property("username").equalTo(Expression.string(username)));
                             rs = query.execute();
-                            if (rs.allResults().get(0).getString("password").equals(passwordCol)) {
-                                query = QueryBuilder
-                                        .select(SelectResult.property("image"))
-                                        .from(DataSource.database(userDatabase))
-                                        .where(Expression.property("username").equalTo(Expression.string(usernameCol)));
-                                rs = query.execute();
-                                byte[] imageInByte = rs.allResults().get(0).getBlob("image").getContent();
+                            String userDocId = rs.allResults().get(0).getString("userDocId");
+                            MutableDocument userDoc = userDatabase.getDocument(userDocId).toMutable();
 
-                                query = QueryBuilder
-                                        .select(SelectResult.property("name"))
-                                        .from(DataSource.database(userDatabase))
-                                        .where(Expression.property("username").equalTo(Expression.string(usernameCol)));
-                                rs = query.execute();
-                                String nameCol = rs.allResults().get(0).getString("name");
+                            //if username existed, check password
+                            if (userDoc.getString("password").equals(password)) {
+                                byte[] imageInByte = userDoc.getBlob("image").getContent();
+                                String name = userDoc.getString("name");
+                                String deviceId = userDoc.getString("deviceId");
 
-                                query = QueryBuilder
-                                        .select(SelectResult.property("deviceId"))
-                                        .from(DataSource.database(userDatabase))
-                                        .where(Expression.property("username").equalTo(Expression.string(usernameCol)));
-                                rs = query.execute();
-                                String deviceIdCol = rs.allResults().get(0).getString("deviceId");
+                                userDoc.setString("hasLogin", "true");
+                                userDatabase.save(userDoc);
 
                                 Intent intent = new Intent(LoginPageActivity.this, HomeActivity.class);
                                 intent.putExtra("ProfileImage", imageInByte);
-                                intent.putExtra("Name", nameCol);
-                                intent.putExtra("Username", usernameCol);
-                                intent.putExtra("DeviceId", deviceIdCol);
+                                intent.putExtra("Name", name);
+                                intent.putExtra("Username", username);
+                                intent.putExtra("DeviceId", deviceId);
                                 startActivity(intent);
                                 finish();
                             } else {

@@ -43,10 +43,9 @@ public class SignupPageActivity extends AppCompatActivity {
     ImageView image;
     EditText signupUsername, signupPassword, signupName;
     TextView signupHaveAccount;
-    int upload = 0, randNum;
+    int upload = 0;
     InputStream is;
     Blob blob;
-    Random rand = new Random();
 
 
     @Override
@@ -77,12 +76,11 @@ public class SignupPageActivity extends AppCompatActivity {
             DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
             final Database userDatabase = new Database("userList", config);
 
-            // Create a new document (i.e. a record) in the database.
-            final MutableDocument userDoc = new MutableDocument();
-
             signup.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    // Create a new document (i.e. a record) in the database.
+                    MutableDocument userDoc = new MutableDocument();
                     Bitmap bitmap;
                     // get image from drawable
                     if (upload == 0) {
@@ -98,6 +96,7 @@ public class SignupPageActivity extends AppCompatActivity {
                     byte imageInByte[] = stream.toByteArray();
                     blob = new Blob("image/*", imageInByte);
 
+                    String docId = userDoc.getId();
                     String usernameCol = signupUsername.getText().toString();
                     String passwordCol = signupPassword.getText().toString();
                     String nameCol = signupName.getText().toString();
@@ -121,18 +120,21 @@ public class SignupPageActivity extends AppCompatActivity {
                                 signupPassword.setText("");
                                 return;
                             }
+                            userDoc.setString("userDocId", docId);
                             userDoc.setBlob("image", blob);
                             userDoc.setString("username", usernameCol);
                             userDoc.setString("password", passwordCol);
                             userDoc.setString("name", nameCol);
                             userDoc.setString("deviceId", deviceIdCol);
+                            userDoc.setString("hasLogin", "true");
 
                             // Save it to the database.
                             userDatabase.save(userDoc);
 
-                            if (userDatabase.getDocument(userDoc.getId()) != null) {
+                            if (userDatabase.getDocument(docId) != null) {
                                 //do success
                                 Intent intent = new Intent(SignupPageActivity.this, HomeActivity.class);
+                                intent.putExtra("UserDocId", docId);
                                 intent.putExtra("ProfileImage", imageInByte);
                                 intent.putExtra("Name", nameCol);
                                 intent.putExtra("Username", usernameCol);
