@@ -7,9 +7,9 @@
     tools:context=".InitiateActivity">
 
     <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        app:srcCompat="@drawable/launch" />
+        android:layout_width="296dp"
+        android:layout_height="408dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        app:srcCompat="@drawable/little_man" />
 </RelativeLayout>
