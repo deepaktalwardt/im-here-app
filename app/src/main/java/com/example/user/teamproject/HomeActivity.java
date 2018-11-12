@@ -138,58 +138,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         } catch (CouchbaseLiteException e) {
             e.printStackTrace();
         }
-
-        /*
-        //view users' list purpose, will delete
-        users = findViewById(R.id.listView);
-        populateListView();
-        */
-
     }
-
-    /*
-    //view user purpose, will delete
-    private void populateListView() {
-        ArrayList<String> listData = new ArrayList<>();
-        try {
-            DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
-            Database userDatabase = new Database("userList", config);
-
-            //get the data and append to a list
-            Query query = QueryBuilder
-                    .select(SelectResult.all())
-                    .from(DataSource.database(userDatabase));
-            ResultSet rs = query.execute();
-            int size = rs.allResults().size();
-            for (int i = 0; i < size; i++) {
-
-                query = QueryBuilder
-                        .select(SelectResult.property("username"))
-                        .from(DataSource.database(userDatabase));
-                rs = query.execute();
-                listData.add(rs.allResults().get(i).getString("username"));
-
-                query = QueryBuilder
-                        .select(SelectResult.property("name"))
-                        .from(DataSource.database(userDatabase));
-                rs = query.execute();
-                listData.add(rs.allResults().get(i).getString("name"));
-
-                query = QueryBuilder
-                        .select(SelectResult.property("deviceId"))
-                        .from(DataSource.database(userDatabase));
-                rs = query.execute();
-                listData.add(rs.allResults().get(i).getString("deviceId"));
-            }
-        }catch(CouchbaseLiteException e){
-            e.printStackTrace();
-        }
-
-        //create the list adapter and set the adapter
-        ListAdapter adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, listData);
-        users.setAdapter(adapter);
-    }
-*/
 
     @Override
     public void onBackPressed() {

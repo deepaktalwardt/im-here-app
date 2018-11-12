@@ -33,7 +33,7 @@ import java.io.ByteArrayOutputStream;
 public class LoginPageActivity extends AppCompatActivity {
     EditText loginUsername, loginPassword;
     TextView needAccount;
-    Button login, userList;
+    Button login;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,32 +117,6 @@ public class LoginPageActivity extends AppCompatActivity {
         ss.setSpan(clickableSpan, 17, 22, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         needAccount.setText(ss);
         needAccount.setMovementMethod(LinkMovementMethod.getInstance());
-
-        //admin login. Will delete later
-        userList = findViewById(R.id.btn_user_list);
-        userList.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(LoginPageActivity.this, HomeActivity.class);
-
-                //set admin account
-                //profile pic
-                Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.little_man);
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                byte[] imageInByte = stream.toByteArray();
-                //profile info
-                String nameCol = "admin";
-                String usernameCol = "admin";
-                String deviceIdCol = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-                intent.putExtra("ProfileImage", imageInByte);
-                intent.putExtra("Name", nameCol);
-                intent.putExtra("Username", usernameCol);
-                intent.putExtra("DeviceId", deviceIdCol);
-                startActivity(intent);
-                finish();
-            }
-        });
     }
 
     public void toastNote(String message) {
