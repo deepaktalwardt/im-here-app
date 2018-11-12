@@ -44,16 +44,6 @@
         android:text="Need an account? Click"
         android:textSize="16dp" />
 
-    <Button
-        android:id="@+id/btn_user_list"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignEnd="@+id/loginUsername"
-        android:layout_alignParentBottom="true"
-        android:layout_marginEnd="12dp"
-        android:layout_marginBottom="21dp"
-        android:text="UserList" />
-
     <ImageView
         android:layout_width="209dp"
         android:layout_height="290dp"
