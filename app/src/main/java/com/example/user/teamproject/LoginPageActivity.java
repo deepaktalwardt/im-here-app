@@ -2,6 +2,7 @@ package com.example.user.teamproject;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.SpannableString;
@@ -32,6 +33,9 @@ public class LoginPageActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login_page);
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
 
         myDatabase = new DatabaseHelper(this);
         loginUsername = findViewById(R.id.loginUsername);

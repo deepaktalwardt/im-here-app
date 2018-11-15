@@ -3,4 +3,6 @@
     <color name="colorPrimary">#E5A823</color>
     <color name="colorPrimaryDark">#D89E20</color>
     <color name="colorAccent">#0055A2</color>
+    <color name="chatSend">#00ffdd</color>
+    <color name="chatReceived">#fffa00</color>
 </resources>

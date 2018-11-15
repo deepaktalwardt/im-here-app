@@ -6,20 +6,28 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.NetworkInfo;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
 public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
-    private Activity mActivity;
-    private MainActivity mainActivity;
     private UserDiscovery userDiscoveryActivity;
+    private ChatActivity chatActivity;
 
     public WiFiDirectBroadcastReceiver(WifiP2pManager manager, WifiP2pManager.Channel channel, UserDiscovery userDiscoveryActivity) {
         this.mManager = manager;
         this.mChannel = channel;
         this.userDiscoveryActivity = userDiscoveryActivity;
+        this.chatActivity = null;
+    }
+
+    public WiFiDirectBroadcastReceiver(WifiP2pManager manager, WifiP2pManager.Channel channel, ChatActivity chatActivity) {
+        this.mManager = manager;
+        this.mChannel = channel;
+        this.chatActivity = chatActivity;
+        this.userDiscoveryActivity = null;
     }
 
     @Override
@@ -36,16 +44,31 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
             }
         } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
             if (mManager != null) {
-                mManager.requestPeers(mChannel, userDiscoveryActivity.peerListListener);
+
+                if (userDiscoveryActivity != null) {
+
+                    mManager.requestPeers(mChannel, userDiscoveryActivity.peerListListener);
+                } else {
+                    // do nothing
+                }
             }
         } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
             if (mManager != null) {
                 NetworkInfo networkInfo = intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
 
-                if (networkInfo.isConnected()) {
-                    mManager.requestConnectionInfo(mChannel, userDiscoveryActivity.connectionInfoListener);
+                if (userDiscoveryActivity != null) {
+
+                    if (networkInfo.isConnected()) {
+                        mManager.requestConnectionInfo(mChannel, userDiscoveryActivity.connectionInfoListener);
+                    } else {
+                        Toast.makeText(userDiscoveryActivity.getApplicationContext(), "Disconnected", Toast.LENGTH_SHORT).show();
+                    }
                 } else {
-                    Toast.makeText(userDiscoveryActivity.getApplicationContext(), "Disconnected", Toast.LENGTH_SHORT).show();
+                    if (networkInfo.isConnected()) {
+                        mManager.requestConnectionInfo(mChannel, chatActivity.connectionInfoListener);
+                    } else {
+                        Toast.makeText(chatActivity.getApplicationContext(), "Disconnected", Toast.LENGTH_SHORT).show();
+                    }
                 }
             } else {
                 return;
