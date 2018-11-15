@@ -13,7 +13,7 @@
         android:layout_alignStart="@+id/signupUsername"
         android:layout_alignParentTop="true"
         android:layout_marginTop="57dp"
-        android:src="@drawable/ic_profile_image" />
+        app:srcCompat="@drawable/ic_profile_image" />
 
     <Button
         android:id="@+id/btn_loadPicture"
