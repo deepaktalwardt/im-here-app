@@ -1,52 +1,59 @@
 package com.example.user.teamproject;
 
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
-import android.provider.MediaStore;
-import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
-import android.util.Log;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.couchbase.lite.Blob;
+import com.couchbase.lite.CouchbaseLiteException;
+import com.couchbase.lite.DataSource;
+import com.couchbase.lite.Database;
+import com.couchbase.lite.DatabaseConfiguration;
+import com.couchbase.lite.Expression;
+import com.couchbase.lite.MutableDocument;
+import com.couchbase.lite.Query;
+import com.couchbase.lite.QueryBuilder;
+import com.couchbase.lite.ResultSet;
+import com.couchbase.lite.SelectResult;
+
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
+import java.util.Random;
+
+import android.provider.Settings.Secure;
+
 
 public class SignupPageActivity extends AppCompatActivity {
     public static final int RESULT_LOAD_IMG = 1;
-    DatabaseHelper myDatabase;
     Button signup, loadPicture;
     ImageView image;
     EditText signupUsername, signupPassword, signupName;
     TextView signupHaveAccount;
     int upload = 0;
+    InputStream is;
+    Blob blob;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup_page);
 
-        myDatabase = new DatabaseHelper(this);
         image = findViewById(R.id.signupProfileImage);
-
         loadPicture = findViewById(R.id.btn_loadPicture);
         loadPicture.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -58,65 +65,96 @@ public class SignupPageActivity extends AppCompatActivity {
             }
         });
 
+
         signupUsername = findViewById(R.id.signupUsername);
         signupPassword = findViewById(R.id.signupPassword);
         signupName = findViewById(R.id.signupName);
 
         signup = findViewById(R.id.btn_signup);
-        signup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Bitmap bitmap;
-                // get image from drawable
-                if(upload == 0) {
-                    bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_profile_image);
-                }else{
-                    image.buildDrawingCache();
-                    bitmap = image.getDrawingCache();
-                }
-                Log.d("sign", String.valueOf(bitmap));
-                // convert bitmap to byte
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                byte imageInByte[] = stream.toByteArray();
+        try {
+            // Get the database (and create it if it doesn’t exist).
+            DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
+            final Database userDatabase = new Database("userList", config);
 
-                String usernameCol = signupUsername.getText().toString();
-                String passwordCol = signupPassword.getText().toString();
-                String nameCol = signupName.getText().toString();
-
-                //check data is fulfilled
-                if (imageInByte != null &&
-                        usernameCol.length() != 0 &&
-                        passwordCol.length() != 0 &&
-                        nameCol.length() != 0) {
-                    Cursor data = myDatabase.getData();
-                    //check if username is used
-                    while (data.moveToNext()) {
-                        //get the value from the data in username
-                        if (usernameCol.equals(data.getString(2))) {
-                            toastNote("Username is used");
-                            signupUsername.setText("");
-                            signupPassword.setText("");
-                            return;
-                        }
-                    }
-                    boolean result = myDatabase.addData(imageInByte, usernameCol, passwordCol, nameCol);
-                    if (result) {
-                        //do success
-                        Intent intent = new Intent(SignupPageActivity.this, HomeActivity.class);
-                        intent.putExtra("ProfileImage", imageInByte);
-                        intent.putExtra("Name", nameCol);
-                        intent.putExtra("Username", usernameCol);
-                        startActivity(intent);
-                        finish();
+            signup.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // Create a new document (i.e. a record) in the database.
+                    MutableDocument userDoc = new MutableDocument();
+                    Bitmap bitmap;
+                    // get image from drawable
+                    if (upload == 0) {
+                        bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_profile_image);
                     } else {
-                        toastNote("Signup failed. Please check input");
+                        image.buildDrawingCache();
+                        bitmap = image.getDrawingCache();
                     }
-                } else {
-                    toastNote("Information is not enough");
+
+                    // convert bitmap to byte
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                    byte imageInByte[] = stream.toByteArray();
+                    blob = new Blob("image/*", imageInByte);
+
+                    String docId = userDoc.getId();
+                    String usernameCol = signupUsername.getText().toString();
+                    String passwordCol = signupPassword.getText().toString();
+                    String nameCol = signupName.getText().toString();
+                    //getting unique id for device
+                    String deviceIdCol = Secure.getString(getContentResolver(), Secure.ANDROID_ID);
+
+                    //check data is fulfilled
+                    if (imageInByte != null &&
+                            usernameCol.length() != 0 &&
+                            passwordCol.length() != 0 &&
+                            nameCol.length() != 0) {
+                        //check if username is used
+                        Query query = QueryBuilder.select(SelectResult.property("username"))
+                                .from(DataSource.database(userDatabase))
+                                .where(Expression.property("username").equalTo(Expression.string(usernameCol)));
+                        try {
+                            ResultSet result = query.execute();
+                            if (result.allResults().size() != 0) {
+                                toastNote("Username is used");
+                                signupUsername.setText("");
+                                signupPassword.setText("");
+                                return;
+                            }
+                            userDoc.setString("userDocId", docId);
+                            userDoc.setBlob("image", blob);
+                            userDoc.setString("username", usernameCol);
+                            userDoc.setString("password", passwordCol);
+                            userDoc.setString("name", nameCol);
+                            userDoc.setString("deviceId", deviceIdCol);
+                            userDoc.setString("hasLogin", "true");
+
+                            // Save it to the database.
+                            userDatabase.save(userDoc);
+
+                            if (userDatabase.getDocument(docId) != null) {
+                                //do success
+                                Intent intent = new Intent(SignupPageActivity.this, HomeActivity.class);
+                                intent.putExtra("UserDocId", docId);
+                                intent.putExtra("ProfileImage", imageInByte);
+                                intent.putExtra("Name", nameCol);
+                                intent.putExtra("Username", usernameCol);
+                                intent.putExtra("DeviceId", deviceIdCol);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                toastNote("Signup failed. Please check input");
+                            }
+                        } catch (CouchbaseLiteException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        toastNote("Information is not enough");
+                    }
                 }
-            }
-        });
+            });
+        } catch (CouchbaseLiteException e) {
+            e.printStackTrace();
+        }
 
         //link to login page if user has an account
         signupHaveAccount = findViewById(R.id.signupHaveAccount);
