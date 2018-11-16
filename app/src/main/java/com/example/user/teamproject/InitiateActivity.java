@@ -49,15 +49,13 @@ public class InitiateActivity extends AppCompatActivity {
                 //load login user's information
                 byte[] imageInByte = userDoc.getBlob("image").getContent();
                 String username = userDoc.getString("username");
-                String name = userDoc.getString("name");
-                String deviceId = userDoc.getString("deviceId");
+                String UUID = userDoc.getString("UUID");
 
                 final Intent intent = new Intent(this, HomeActivity.class);
                 intent.putExtra("UserDocId", userDocId);
                 intent.putExtra("ProfileImage", imageInByte);
-                intent.putExtra("Name", name);
+                intent.putExtra("UUID", UUID);
                 intent.putExtra("Username", username);
-                intent.putExtra("DeviceId", deviceId);
                 handler.postDelayed(new Runnable(){
                     @Override
                     public void run(){

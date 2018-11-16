@@ -75,17 +75,15 @@ public class LoginPageActivity extends AppCompatActivity {
                             //if username existed, check password
                             if (userDoc.getString("password").equals(password)) {
                                 byte[] imageInByte = userDoc.getBlob("image").getContent();
-                                String name = userDoc.getString("name");
-                                String deviceId = userDoc.getString("deviceId");
+                                String UUID = userDoc.getString("UUID");
 
                                 userDoc.setString("hasLogin", "true");
                                 userDatabase.save(userDoc);
 
                                 Intent intent = new Intent(LoginPageActivity.this, HomeActivity.class);
                                 intent.putExtra("ProfileImage", imageInByte);
-                                intent.putExtra("Name", name);
+                                intent.putExtra("UUID", UUID);
                                 intent.putExtra("Username", username);
-                                intent.putExtra("DeviceId", deviceId);
                                 startActivity(intent);
                                 finish();
                             } else {

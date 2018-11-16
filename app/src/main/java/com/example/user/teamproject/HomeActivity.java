@@ -33,7 +33,7 @@ import java.util.ArrayList;
 
 public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     ImageView HomeImage;
-    TextView HomeName, HomeUsername;
+    TextView HomeUUID, HomeUsername;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,17 +70,14 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
         HomeImage = navigationView.getHeaderView(0).findViewById(R.id.NavHeaderImageView);
         byte[] imageInByte = intent.getByteArrayExtra("ProfileImage");
-        Log.d("imagebyte", String.valueOf(imageInByte));
         Bitmap bitmap = BitmapFactory.decodeByteArray(imageInByte, 0, imageInByte.length);
         HomeImage.setImageBitmap(bitmap);
 
-        HomeName = navigationView.getHeaderView(0).findViewById(R.id.NavHeaderName);
-        HomeName.setText(intent.getStringExtra("Name"));
-
+        HomeUUID = navigationView.getHeaderView(0).findViewById(R.id.NavHeaderUUID);
+        HomeUUID.setText(intent.getStringExtra("UUID"));
         HomeUsername = navigationView.getHeaderView(0).findViewById(R.id.NavHeaderUsername);
         HomeUsername.setText(intent.getStringExtra("Username"));
     }
-
 
     @Override
     public void onBackPressed() {

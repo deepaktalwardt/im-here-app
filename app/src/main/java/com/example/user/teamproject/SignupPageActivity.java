@@ -10,6 +10,7 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -41,7 +42,7 @@ public class SignupPageActivity extends AppCompatActivity {
     public static final int RESULT_LOAD_IMG = 1;
     Button signup, loadPicture;
     ImageView image;
-    EditText signupUsername, signupPassword, signupName;
+    EditText signupUsername, signupPassword;
     TextView signupHaveAccount;
     int upload = 0;
     InputStream is;
@@ -68,7 +69,6 @@ public class SignupPageActivity extends AppCompatActivity {
 
         signupUsername = findViewById(R.id.signupUsername);
         signupPassword = findViewById(R.id.signupPassword);
-        signupName = findViewById(R.id.signupName);
 
         signup = findViewById(R.id.btn_signup);
         try {
@@ -99,15 +99,12 @@ public class SignupPageActivity extends AppCompatActivity {
                     String docId = userDoc.getId();
                     String usernameCol = signupUsername.getText().toString();
                     String passwordCol = signupPassword.getText().toString();
-                    String nameCol = signupName.getText().toString();
-                    //getting unique id for device
-                    String deviceIdCol = Secure.getString(getContentResolver(), Secure.ANDROID_ID);
+                    String UUID = "";
 
                     //check data is fulfilled
                     if (imageInByte != null &&
                             usernameCol.length() != 0 &&
-                            passwordCol.length() != 0 &&
-                            nameCol.length() != 0) {
+                            passwordCol.length() != 0) {
                         //check if username is used
                         Query query = QueryBuilder.select(SelectResult.property("username"))
                                 .from(DataSource.database(userDatabase))
@@ -124,8 +121,14 @@ public class SignupPageActivity extends AppCompatActivity {
                             userDoc.setBlob("image", blob);
                             userDoc.setString("username", usernameCol);
                             userDoc.setString("password", passwordCol);
-                            userDoc.setString("name", nameCol);
-                            userDoc.setString("deviceId", deviceIdCol);
+
+                            Random random = new Random();
+                            int randomNum = random.nextInt(1000000000);
+                            while(randomNum < 100000000) {
+                                randomNum = random.nextInt(1000000000);
+                            }
+                            UUID = usernameCol + randomNum;
+                            userDoc.setString("UUID", UUID);
                             userDoc.setString("hasLogin", "true");
 
                             // Save it to the database.
@@ -136,9 +139,8 @@ public class SignupPageActivity extends AppCompatActivity {
                                 Intent intent = new Intent(SignupPageActivity.this, HomeActivity.class);
                                 intent.putExtra("UserDocId", docId);
                                 intent.putExtra("ProfileImage", imageInByte);
-                                intent.putExtra("Name", nameCol);
+                                intent.putExtra("UUID", UUID);
                                 intent.putExtra("Username", usernameCol);
-                                intent.putExtra("DeviceId", deviceIdCol);
                                 startActivity(intent);
                                 finish();
                             } else {
