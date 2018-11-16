@@ -29,8 +29,6 @@ import java.util.ArrayList;
 public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     ImageView HomeImage;
     TextView HomeName, HomeUsername;
-    private ListView users;
-    DatabaseHelper myDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,29 +74,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
         HomeUsername = navigationView.getHeaderView(0).findViewById(R.id.NavHeaderUsername);
         HomeUsername.setText(intent.getStringExtra("Username"));
-
-        //view users' list purpose, will delete
-        users = findViewById(R.id.listView);
-        myDatabase = new DatabaseHelper(this);
-        populateListView();
     }
 
-    //view user purpose, will delete
-    private void populateListView() {
-        //get the data and append to a list
-        Cursor data = myDatabase.getData();
-        ArrayList<String> listData = new ArrayList<>();
-        while (data.moveToNext()) {
-            //get the value from the data in column, then add it to the ArrayList
-            listData.add(data.getString(0));
-            listData.add(data.getString(2));
-            listData.add(data.getString(3));
-            listData.add(data.getString(4));
-        }
-        //create the list adapter and set the adapter
-        ListAdapter adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, listData);
-        users.setAdapter(adapter);
-    }
 
     @Override
     public void onBackPressed() {
