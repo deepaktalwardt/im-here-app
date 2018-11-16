@@ -24,6 +24,11 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.couchbase.lite.CouchbaseLiteException;
+import com.couchbase.lite.Database;
+import com.couchbase.lite.DatabaseConfiguration;
+import com.couchbase.lite.MutableDocument;
+
 import java.util.ArrayList;
 
 public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -129,7 +134,20 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         } else if (id == R.id.action_settings) {
 
         } else if (id == R.id.nav_logout) {
-            Intent intent = new Intent(this, LoginPageActivity.class);
+            try {
+                // Get the database (and create it if it doesn’t exist).
+                DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
+                Database userDatabase = new Database("userList", config);
+                Intent intent = getIntent();
+                String userDocId = intent.getStringExtra("UserDocId");
+                Log.d("ID", userDocId);
+                MutableDocument userDoc = userDatabase.getDocument(userDocId).toMutable();
+                userDoc.setString("hasLogin", "false");
+                userDatabase.save(userDoc);
+            } catch (CouchbaseLiteException e) {
+                e.printStackTrace();
+            }
+            Intent intent = new Intent(HomeActivity.this, LoginPageActivity.class);
             startActivity(intent);
             finish();
         }
