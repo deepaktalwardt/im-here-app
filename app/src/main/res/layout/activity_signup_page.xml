@@ -43,16 +43,6 @@
         android:layout_marginBottom="228dp"
         android:hint="Enter a new password" />
 
-    <EditText
-        android:id="@+id/signupName"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginBottom="170dp"
-        android:hint="Enter a nickname" />
-
     <Button
         android:id="@+id/btn_signup"
         android:layout_width="wrap_content"

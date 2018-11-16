@@ -18,29 +18,27 @@
         android:layout_width="118dp"
         android:layout_height="120dp"
         android:layout_alignParentStart="true"
-        android:layout_centerVertical="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="7dp"
         app:srcCompat="@mipmap/ic_launcher_round" />
-
-    <TextView
-        android:id="@+id/NavHeaderName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/NavHeaderImageView"
-        android:layout_alignParentStart="true"
-        android:layout_marginStart="120dp"
-        android:text="Nickname"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textSize="18dp" />
 
     <TextView
         android:id="@+id/NavHeaderUsername"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/NavHeaderName"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="4dp"
-        android:layout_marginBottom="85dp"
+        android:layout_marginStart="125dp"
+        android:layout_marginTop="30dp"
         android:text="username"
-        android:textSize="16dp" />
+        android:textSize="18dp" />
 
+    <TextView
+        android:id="@+id/NavHeaderUUID"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="128dp"
+        android:layout_marginBottom="60dp"
+        android:text="UUID"
+        android:textSize="16dp" />
 </RelativeLayout>
