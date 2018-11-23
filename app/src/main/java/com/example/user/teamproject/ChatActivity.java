@@ -27,6 +27,17 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.couchbase.lite.CouchbaseLiteException;
+import com.couchbase.lite.DataSource;
+import com.couchbase.lite.Database;
+import com.couchbase.lite.DatabaseConfiguration;
+import com.couchbase.lite.Expression;
+import com.couchbase.lite.MutableDocument;
+import com.couchbase.lite.Query;
+import com.couchbase.lite.QueryBuilder;
+import com.couchbase.lite.ResultSet;
+import com.couchbase.lite.SelectResult;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -36,6 +47,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.channels.AsynchronousChannel;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class ChatActivity extends AppCompatActivity {
@@ -63,6 +75,9 @@ public class ChatActivity extends AppCompatActivity {
     EditText entryBox;
     ListView messageList;
 
+    //friend info
+    String friendUUID;
+
     static final int MESSAGE_READ =  1;
 
 
@@ -70,6 +85,18 @@ public class ChatActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+
+        //get chat db by friend UUID
+        Intent intent1 = getIntent();
+        friendUUID = intent1.getStringExtra("FriendUUID");
+        DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
+        Database friendChat = null;
+        try {
+            friendChat = new Database(friendUUID, config);
+            loadMessage(friendChat);
+        } catch (CouchbaseLiteException e) {
+            e.printStackTrace();
+        }
 
         Intent intent = getIntent();
         getSupportActionBar().setTitle(intent.getStringExtra("deviceName").substring(5));
@@ -85,10 +112,26 @@ public class ChatActivity extends AppCompatActivity {
 //        adapter = new CustomAdapter(this, msgList);
 //        messageList.setAdapter(adapter);
 
+        final Database finalFriendChat = friendChat;
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String textToSend = entryBox.getText().toString();
+
+                //send to db
+                MutableDocument message = new MutableDocument();
+                int lastIndex = (int) finalFriendChat.getCount();
+                message.setInt("index", lastIndex + 1);
+                message.setString("sender", username);
+                message.setString("context", textToSend);
+                message.setString("time", String.valueOf(Calendar.getInstance().getTime()));
+                try {
+                    finalFriendChat.save(message);
+                } catch (CouchbaseLiteException e) {
+                    e.printStackTrace();
+                }
+
+                //send to chat
                 ChatModel model = new ChatModel(textToSend, true);
                 adapter = new CustomAdapter(getApplicationContext(), msgList);
                 messageList.setAdapter(adapter);
@@ -283,6 +326,36 @@ public class ChatActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         unregisterReceiver(mReceiver);
+    }
+
+    private void loadMessage(Database friendChat) throws CouchbaseLiteException {
+        Query query = QueryBuilder.select(SelectResult.property("index"))
+                .from(DataSource.database(friendChat))
+                .where(Expression.property("index"));
+        ResultSet rs = query.execute();
+        int size = rs.allResults().size();
+
+        //get the data and append to a list
+        ArrayList<String> listData = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            query = QueryBuilder.select(SelectResult.property("sender"))
+                    .from(DataSource.database(friendChat))
+                    .where(Expression.property("index").equalTo(Expression.value(i)));
+            rs = query.execute();
+            String sender = rs.allResults().get(0).getString("sender");
+
+            query = QueryBuilder.select(SelectResult.property("context"))
+                    .from(DataSource.database(friendChat))
+                    .where(Expression.property("index").equalTo(Expression.value(i)));
+            rs = query.execute();
+            String context = rs.allResults().get(0).getString("context");
+
+            query = QueryBuilder.select(SelectResult.property("time"))
+                    .from(DataSource.database(friendChat))
+                    .where(Expression.property("index").equalTo(Expression.value(i)));
+            rs = query.execute();
+            String time = rs.allResults().get(0).getString("time");
+        }
     }
 
 
