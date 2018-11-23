@@ -77,6 +77,42 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         HomeUUID.setText(intent.getStringExtra("UUID"));
         HomeUsername = navigationView.getHeaderView(0).findViewById(R.id.NavHeaderUsername);
         HomeUsername.setText(intent.getStringExtra("Username"));
+
+        //open exist chat
+        try {
+            // Get the database (and create it if it doesn’t exist).
+            DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
+            Database friendDatabase = new Database("friendList", config);
+
+            /*
+            * //list all friend
+            *
+            * Query query = QueryBuilder.select(SelectResult.property("friendUUID"))
+                                .from(DataSource.database(friendDatabase))
+                                .where(Expression.property("friendUUID"));
+            * rs = query.execute();
+            * int i = 0, size = rs.allResults().size();;
+            * String referChatRoom;
+            * while( i < rs.allResults().size()){
+            *   rs = query.execute();
+            *   friendUUID = rs.allResults().get(i).getString("friendUUID");
+            *   //TODO: list friends into a list
+            * }
+            *
+            * //onclick any friend
+            *
+            * get(friendUUID);
+            *
+            * start an intent to chat activity
+            * Intent intent2 = new Intent(HomeActivity.this, ChatActivity.class);
+            * intent2.putExtra("friendUUID", friendUUID);
+            * startActivity(intent2);
+            *
+            *
+             */
+        } catch (CouchbaseLiteException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
