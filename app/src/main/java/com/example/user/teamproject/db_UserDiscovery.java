@@ -47,8 +47,8 @@ public class db_UserDiscovery extends AppCompatActivity {
             * a function to get friends' information and save document
             *
             * friendUUID = getString(otherDevice);
-            * imageInByte = getBlob(otherDevice);
-            * friendBlob = = new Blob("image/*", imageInByte);
+            * imageInByte = getArray(otherDevice);
+            * friendBlob = new Blob("image/*", imageInByte);
             * friendUsername = getString(otherDevice);
             *
             * friendDoc.setString("friendUUID", friendUUID);

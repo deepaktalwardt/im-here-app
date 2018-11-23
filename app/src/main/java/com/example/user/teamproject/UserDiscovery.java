@@ -25,6 +25,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.couchbase.lite.Blob;
+import com.couchbase.lite.CouchbaseLiteException;
+import com.couchbase.lite.Database;
+import com.couchbase.lite.DatabaseConfiguration;
+import com.couchbase.lite.MutableDocument;
+
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -58,6 +64,11 @@ public class UserDiscovery extends AppCompatActivity {
 
     List<String> selectNameArray = new ArrayList<String>();
     List<WifiP2pDevice> selectDeviceArray = new ArrayList<WifiP2pDevice>();
+
+    //friends' info
+    Blob myBlob, friendBlob;
+    byte[] imageInByte;
+    String myUsername, friendUsername, friendUUID, myUUID;
 
 
     @Override
@@ -115,6 +126,43 @@ public class UserDiscovery extends AppCompatActivity {
 //
 //
 //                        // TODO: Add to Couchbase DB
+//                        // Get the database (and create it if it doesn’t exist).
+//                        DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
+//                        Database friendDatabase = null;
+//                        try {
+//                            friendDatabase = new Database("friendList", config);
+//                        } catch (CouchbaseLiteException e) {
+//                            e.printStackTrace();
+//                        }
+//
+//                        // Create a new document (i.e. a record) in the database.
+//                        MutableDocument friendDoc = new MutableDocument();
+//
+//                        //imply the owner of friends by UUID, maybe other info
+//                        friendDoc.setString("myUUID", myUUID);
+//            /*
+//            friendDoc.setBlob("myImage", myBlob);
+//            friendDoc.setString("myUsername", myUsername);
+//            */
+//
+//
+//                        //a function to get friends' information and save document
+//
+//                        friendUUID = getString(otherDevice);
+//                        imageInByte = getArray(otherDevice);
+//                        friendBlob = new Blob("image/*", imageInByte);
+//                        friendUsername = getString(otherDevice);
+//
+//                        friendDoc.setString("friendUUID", friendUUID);
+//                        friendDoc.setBlob("friendBlob", friendBlob);
+//                        friendDoc.setString("friendUsername", friendUsername);
+//
+//                        try {
+//                            friendDatabase.save(friendDoc);
+//                        } catch (CouchbaseLiteException e) {
+//                            e.printStackTrace();
+//                        }
+//
 //                    }
 //
 //                    @Override
@@ -122,9 +170,6 @@ public class UserDiscovery extends AppCompatActivity {
 //                        Toast.makeText(getApplicationContext(), "Not connected", Toast.LENGTH_SHORT).show();
 //                    }
 //                });
-
-
-
             }
         });
 
