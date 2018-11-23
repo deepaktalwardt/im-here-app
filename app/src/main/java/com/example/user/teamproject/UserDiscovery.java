@@ -9,7 +9,6 @@ import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
-import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Handler;
@@ -19,7 +18,6 @@ import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -34,6 +32,7 @@ import java.util.List;
 
 public class UserDiscovery extends AppCompatActivity {
     // UI elements
+//    RecyclerView searchResultView;
     ListView listView;
     TextView searchStatus;
     ProgressDialog progressDialog;
@@ -54,6 +53,9 @@ public class UserDiscovery extends AppCompatActivity {
     String[] deviceNameArray;
     WifiP2pDevice[] deviceArray;
 
+//    String[] selectNameArray;
+//    WifiP2pDevice[] selectDeviceArray;
+
     List<String> selectNameArray = new ArrayList<String>();
     List<WifiP2pDevice> selectDeviceArray = new ArrayList<WifiP2pDevice>();
 
@@ -69,40 +71,11 @@ public class UserDiscovery extends AppCompatActivity {
 
         // Check if WiFi is already enabled
         if (wifiManager.isWifiEnabled()) {
-//            Toast.makeText(this, "WiFi already enabled!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "WiFi already enabled!", Toast.LENGTH_SHORT).show();
         } else {
-//            Toast.makeText(this, "WiFi needed for this app to work. WiFi will automatically be turned on.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "WiFi needed for this app to work. WiFi will automatically be turned on.", Toast.LENGTH_SHORT).show();
             wifiManager.setWifiEnabled(true);
         }
-
-        // Check if group already created, if yes, delete it
-        mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener() {
-            @Override
-            public void onGroupInfoAvailable(WifiP2pGroup group) {
-                if (group != null) {
-                    mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener() {
-                        @Override
-                        public void onSuccess() {
-                            Toast toast = Toast.makeText(getApplicationContext(), "Previous Group successfully removed", Toast.LENGTH_SHORT);
-                            toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
-                            toast.show();
-                        }
-
-                        @Override
-                        public void onFailure(int reason) {
-                            Toast toast = Toast.makeText(getApplicationContext(), "Failed to remove group: " + reason, Toast.LENGTH_SHORT);
-                            toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
-                            toast.show();
-                        }
-                    });
-                } else {
-                    Toast toast = Toast.makeText(getApplicationContext(), "Group Does not exist", Toast.LENGTH_SHORT);
-                    toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
-                    toast.show();
-                }
-            }
-        });
-
 
         mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
             @Override
@@ -121,10 +94,13 @@ public class UserDiscovery extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
                 final WifiP2pDevice device = selectDeviceArray.get(position);
+//                final WifiP2pConfig config = new WifiP2pConfig();
+//                config.deviceAddress = device.deviceAddress;
                 String deviceAddress = device.deviceAddress;
 
                 Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
                 intent.putExtra("deviceName", device.deviceName);
+//                intent.putExtra("config", config);
                 intent.putExtra("deviceAddress", deviceAddress);
                 intent.putExtra("deviceType", "host");
 
