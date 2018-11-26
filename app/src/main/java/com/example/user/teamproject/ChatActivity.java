@@ -66,7 +66,7 @@ public class ChatActivity extends AppCompatActivity {
     ClientClass clientClass;
     ServerClass serverClass;
     SendReceive sendReceive;
-//    ArrayList<String> msgList;
+    //    ArrayList<String> msgList;
     ArrayList msgList = new ArrayList<ChatModel>();
     CustomAdapter adapter;
 
@@ -76,27 +76,19 @@ public class ChatActivity extends AppCompatActivity {
     ListView messageList;
 
     //friend info
-    String friendUUID;
+    String friendUUID, friendUsername;
 
-    static final int MESSAGE_READ =  1;
+    static final int MESSAGE_READ = 1;
+
+    //database declaration
+    DatabaseConfiguration DBconfig = new DatabaseConfiguration(getApplicationContext());
+    Database friendDatabase, chatDatabase = null;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
-
-        //get chat db by friend UUID
-        Intent intent1 = getIntent();
-        friendUUID = intent1.getStringExtra("FriendUUID");
-        DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
-        Database friendChat = null;
-        try {
-            friendChat = new Database(friendUUID, config);
-            loadMessage(friendChat);
-        } catch (CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
 
         Intent intent = getIntent();
         getSupportActionBar().setTitle(intent.getStringExtra("deviceName").substring(5));
@@ -112,26 +104,10 @@ public class ChatActivity extends AppCompatActivity {
 //        adapter = new CustomAdapter(this, msgList);
 //        messageList.setAdapter(adapter);
 
-        final Database finalFriendChat = friendChat;
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String textToSend = entryBox.getText().toString();
-
-                //send to db
-                MutableDocument message = new MutableDocument();
-                int lastIndex = (int) finalFriendChat.getCount();
-                message.setInt("index", lastIndex + 1);
-                message.setString("sender", username);
-                message.setString("context", textToSend);
-                message.setString("time", String.valueOf(Calendar.getInstance().getTime()));
-                try {
-                    finalFriendChat.save(message);
-                } catch (CouchbaseLiteException e) {
-                    e.printStackTrace();
-                }
-
-                //send to chat
                 ChatModel model = new ChatModel(textToSend, true);
                 adapter = new CustomAdapter(getApplicationContext(), msgList);
                 messageList.setAdapter(adapter);
@@ -175,6 +151,50 @@ public class ChatActivity extends AppCompatActivity {
                 @Override
                 public void onSuccess() {
                     Toast.makeText(getApplicationContext(), "Connected to " + deviceName, Toast.LENGTH_SHORT).show();
+                    //TODO: Add to Couchbase DB
+                    // Get the database (and create it if it doesn’t exist).
+                    try {
+                        friendDatabase = new Database("friendList", DBconfig);
+                    } catch (CouchbaseLiteException e) {
+                        e.printStackTrace();
+                    }
+
+                    // Create a new document (i.e. a record) in the database.
+                    MutableDocument friendDoc = new MutableDocument();
+
+                    //imply the owner of friends by UUID, maybe other info
+                        /*
+                        friendDoc.setString("myUUID", myUUID);
+                        friendDoc.setBlob("myImage", myBlob);
+                        friendDoc.setString("myUsername", myUsername);
+                        */
+
+
+                    //a function to get friends' information and save document
+                    Intent intent = getIntent();
+                    friendUUID = intent.getStringExtra("FriendUUID");
+                    friendUsername = intent.getStringExtra("FriendUsername");
+                    //imageInByte = getArray(otherDevice);
+                    //friendBlob = new Blob("image/*", imageInByte);
+
+                    friendDoc.setString("friendUUID", friendUUID);
+                    friendDoc.setString("friendUsername", friendUsername);
+                    //friendDoc.setBlob("friendBlob", friendBlob);
+
+                    try {
+                        friendDatabase.save(friendDoc);
+                    } catch (CouchbaseLiteException e) {
+                        e.printStackTrace();
+                    }
+
+                    //create if chat doesn't exist, otherwise open it and reload old message
+                    try {
+                        chatDatabase = new Database(friendUUID, DBconfig);
+                        loadMessage(chatDatabase);
+                    } catch (CouchbaseLiteException e) {
+                        e.printStackTrace();
+                    }
+
                 }
 
                 @Override
@@ -205,6 +225,20 @@ public class ChatActivity extends AppCompatActivity {
                     adapter.notifyDataSetChanged();
                     Toast.makeText(getApplicationContext(), "Count:" + adapter.getCount(), Toast.LENGTH_LONG).show();
                     // TODO: add to database
+                    try {
+                        chatDatabase = new Database(friendUUID, DBconfig);
+                        MutableDocument message = new MutableDocument();
+                        int count = (int) chatDatabase.getCount();
+                        //count can be last index
+                        //such as when count is 0, means there is no previous message
+                        //and the current message will be at index 0 to new chat db.
+                        //and so on.
+                        message.setInt("index", count);
+                        message.setValue("model", model);
+                        chatDatabase.save(message);
+                    } catch (CouchbaseLiteException e) {
+                        e.printStackTrace();
+                    }
                     break;
             }
             return true;
@@ -338,23 +372,15 @@ public class ChatActivity extends AppCompatActivity {
         //get the data and append to a list
         ArrayList<String> listData = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            query = QueryBuilder.select(SelectResult.property("sender"))
-                    .from(DataSource.database(friendChat))
-                    .where(Expression.property("index").equalTo(Expression.value(i)));
+            query = QueryBuilder.select(SelectResult.property("model"))
+                    .from(DataSource.database(chatDatabase))
+                    .where(Expression.property("index").equalTo(Expression.property("index").value(i)));
             rs = query.execute();
-            String sender = rs.allResults().get(0).getString("sender");
-
-            query = QueryBuilder.select(SelectResult.property("context"))
-                    .from(DataSource.database(friendChat))
-                    .where(Expression.property("index").equalTo(Expression.value(i)));
-            rs = query.execute();
-            String context = rs.allResults().get(0).getString("context");
-
-            query = QueryBuilder.select(SelectResult.property("time"))
-                    .from(DataSource.database(friendChat))
-                    .where(Expression.property("index").equalTo(Expression.value(i)));
-            rs = query.execute();
-            String time = rs.allResults().get(0).getString("time");
+            ChatModel model = (ChatModel)rs.allResults().get(0).getValue("model");
+            adapter = new CustomAdapter(getApplicationContext(), msgList);
+            messageList.setAdapter(adapter);
+            msgList.add(model);
+            adapter.notifyDataSetChanged();
         }
     }
 

@@ -123,45 +123,12 @@ public class UserDiscovery extends AppCompatActivity {
 //                        Toast.makeText(getApplicationContext(), "Connected to " + device.deviceName, Toast.LENGTH_SHORT).show();
 //
 //                        // TODO: Add Intent to open the correct activity
-//
-//
-//                        // TODO: Add to Couchbase DB
-//                        // Get the database (and create it if it doesn’t exist).
-//                        DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
-//                        Database friendDatabase = null;
-//                        try {
-//                            friendDatabase = new Database("friendList", config);
-//                        } catch (CouchbaseLiteException e) {
-//                            e.printStackTrace();
-//                        }
-//
-//                        // Create a new document (i.e. a record) in the database.
-//                        MutableDocument friendDoc = new MutableDocument();
-//
-//                        //imply the owner of friends by UUID, maybe other info
-//                        friendDoc.setString("myUUID", myUUID);
-//            /*
-//            friendDoc.setBlob("myImage", myBlob);
-//            friendDoc.setString("myUsername", myUsername);
-//            */
-//
-//
-//                        //a function to get friends' information and save document
-//
-//                        friendUUID = getString(otherDevice);
-//                        imageInByte = getArray(otherDevice);
-//                        friendBlob = new Blob("image/*", imageInByte);
-//                        friendUsername = getString(otherDevice);
-//
-//                        friendDoc.setString("friendUUID", friendUUID);
-//                        friendDoc.setBlob("friendBlob", friendBlob);
-//                        friendDoc.setString("friendUsername", friendUsername);
-//
-//                        try {
-//                            friendDatabase.save(friendDoc);
-//                        } catch (CouchbaseLiteException e) {
-//                            e.printStackTrace();
-//                        }
+//                        getFriendUUID();
+//                        Intent intent = new intent(UserDiscovery.this, ChatActivity.class);
+//                        intent.putExtra("FriendUUID", friendUUID);
+//                        intent.putExtra("FriendUsername", friendUsername);
+//                        startActivity(intent);
+//                        finish();
 //
 //                    }
 //
