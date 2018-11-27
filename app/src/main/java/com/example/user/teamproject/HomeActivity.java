@@ -42,7 +42,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     private RecyclerView mRecyclerView;
     private FriendListAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
-    ImageView HomeImage;
+    ImageView HomeImage, status;
     TextView HomeUUID, HomeUsername;
     String friendUsername, friendUUID;
 
@@ -56,7 +56,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         //remove later
         PrettyTime prettyTime = new PrettyTime(Locale.getDefault());
         String ago = prettyTime.format(new Date(String.valueOf(Calendar.getInstance().getTime())));
-        friendList.add(new Friend_card("kles", "kles835135248", ago));
+        int connection = 1;
+        friendList.add(new Friend_card("kles", "kles835135248", ago, connection));
 
         mRecyclerView = findViewById(R.id.recyclerView);
         mRecyclerView.setHasFixedSize(true);
@@ -140,7 +141,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             *   friendUsername = rs.allResults().get(i).getString("friendUsername");
             *   rs = query.execute();
             *   time = rs.allResults().get(i).getString("time");
-            *   friendList.add(new Friend_card(friendUsername, friendUUID, time));
+            *   int connection = 1;
+            *   friendList.add(new Friend_card(friendUsername, friendUUID, time, connection));
             *   i++;
             * }
             *
