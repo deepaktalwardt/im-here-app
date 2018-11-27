@@ -7,6 +7,8 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -32,13 +34,41 @@ import com.couchbase.lite.MutableDocument;
 import java.util.ArrayList;
 
 public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+    private RecyclerView mRecyclerView;
+    private FriendListAdapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
     ImageView HomeImage;
     TextView HomeUUID, HomeUsername;
+    String friendUsername, friendUUID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        final ArrayList<Friend_card> friendList = new ArrayList<>();
+        friendList.add(new Friend_card("kles", "kles835135248"));
+
+        mRecyclerView = findViewById(R.id.recyclerView);
+        mRecyclerView.setHasFixedSize(true);
+        mLayoutManager = new LinearLayoutManager(this);
+        mAdapter = new FriendListAdapter(friendList);
+
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.setAdapter(mAdapter);
+
+        mAdapter.setOnItemClickListener(new FriendListAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(int position) {
+                friendUsername = friendList.get(position).getUsername();
+                friendUUID = friendList.get(position).getUUID();
+                Intent intent = new Intent(HomeActivity.this, ChatActivity.class);
+                intent.putExtra("FriendUsername", friendUsername);
+                intent.putExtra("FriendUUID", friendUUID);
+
+                startActivity(intent);
+            }
+        });
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -86,6 +116,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
             /*
             * //list all friend
+            * final ArrayList<Friend_card> friendList = new ArrayList<>();
             *
             * Query query = QueryBuilder.select(SelectResult.property("friendUUID"))
                                 .from(DataSource.database(friendDatabase))
@@ -96,19 +127,32 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             * while( i < rs.allResults().size()){
             *   rs = query.execute();
             *   friendUUID = rs.allResults().get(i).getString("friendUUID");
-            *   //TODO: list friends into a list
+            *   rs = query.execute();
+            *   friendUsername = rs.allResults().get(i).getString("friendUsername");
+            *   friendList.add(new Friend_card(friendUsername, friendUUID));
+            *   i++;
             * }
             *
-            * //onclick any friend
-            *
-            * get(friendUUID);
-            *
-            * start an intent to chat activity
-            * Intent intent2 = new Intent(HomeActivity.this, ChatActivity.class);
-            * intent2.putExtra("friendUUID", friendUUID);
-            * startActivity(intent2);
-            *
-            *
+            * mRecyclerView = findViewById(R.id.recyclerView);
+                mRecyclerView.setHasFixedSize(true);
+                mLayoutManager = new LinearLayoutManager(this);
+                mAdapter = new FriendListAdapter(friendList);
+
+                mRecyclerView.setLayoutManager(mLayoutManager);
+                mRecyclerView.setAdapter(mAdapter);
+
+                mAdapter.setOnItemClickListener(new FriendListAdapter.OnItemClickListener() {
+                @Override
+                public void onItemClick(int position) {
+                    friendUsername = friendList.get(position).getUsername();
+                    friendUUID = friendList.get(position).getUUID();
+                    Intent intent = new Intent(HomeActivity.this, ChatActivity.class);
+                    intent.putExtra("FriendUsername", friendUsername);
+                 intent.putExtra("FriendUUID", friendUUID);
+
+                 startActivity(intent);
+                }
+                });
              */
         } catch (CouchbaseLiteException e) {
             e.printStackTrace();

@@ -81,7 +81,6 @@ public class ChatActivity extends AppCompatActivity {
     static final int MESSAGE_READ = 1;
 
     //database declaration
-    DatabaseConfiguration DBconfig = new DatabaseConfiguration(getApplicationContext());
     Database friendDatabase, chatDatabase = null;
 
 
@@ -89,9 +88,10 @@ public class ChatActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+        DatabaseConfiguration DBconfig = new DatabaseConfiguration(getApplicationContext());
 
         Intent intent = getIntent();
-        getSupportActionBar().setTitle(intent.getStringExtra("deviceName").substring(5));
+        getSupportActionBar().setTitle(intent.getStringExtra("FriendUsername"));
 
         wireUiToVars();
         setupObjects();
@@ -153,6 +153,7 @@ public class ChatActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Connected to " + deviceName, Toast.LENGTH_SHORT).show();
                     //TODO: Add to Couchbase DB
                     // Get the database (and create it if it doesn’t exist).
+                    DatabaseConfiguration DBconfig = new DatabaseConfiguration(getApplicationContext());
                     try {
                         friendDatabase = new Database("friendList", DBconfig);
                     } catch (CouchbaseLiteException e) {
@@ -226,6 +227,7 @@ public class ChatActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Count:" + adapter.getCount(), Toast.LENGTH_LONG).show();
                     // TODO: add to database
                     try {
+                        DatabaseConfiguration DBconfig = new DatabaseConfiguration(getApplicationContext());
                         chatDatabase = new Database(friendUUID, DBconfig);
                         MutableDocument message = new MutableDocument();
                         int count = (int) chatDatabase.getCount();
