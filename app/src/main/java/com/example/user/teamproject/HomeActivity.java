@@ -31,7 +31,12 @@ import com.couchbase.lite.Database;
 import com.couchbase.lite.DatabaseConfiguration;
 import com.couchbase.lite.MutableDocument;
 
+import org.ocpsoft.prettytime.PrettyTime;
+
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private RecyclerView mRecyclerView;
@@ -47,7 +52,11 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         setContentView(R.layout.activity_home);
 
         final ArrayList<Friend_card> friendList = new ArrayList<>();
-        friendList.add(new Friend_card("kles", "kles835135248"));
+
+        //remove later
+        PrettyTime prettyTime = new PrettyTime(Locale.getDefault());
+        String ago = prettyTime.format(new Date(String.valueOf(Calendar.getInstance().getTime())));
+        friendList.add(new Friend_card("kles", "kles835135248", ago));
 
         mRecyclerView = findViewById(R.id.recyclerView);
         mRecyclerView.setHasFixedSize(true);
@@ -129,7 +138,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             *   friendUUID = rs.allResults().get(i).getString("friendUUID");
             *   rs = query.execute();
             *   friendUsername = rs.allResults().get(i).getString("friendUsername");
-            *   friendList.add(new Friend_card(friendUsername, friendUUID));
+            *   rs = query.execute();
+            *   time = rs.allResults().get(i).getString("time");
+            *   friendList.add(new Friend_card(friendUsername, friendUUID, time));
             *   i++;
             * }
             *
@@ -194,7 +205,6 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 Database userDatabase = new Database("userList", config);
                 Intent intent = getIntent();
                 String userDocId = intent.getStringExtra("UserDocId");
-                Log.d("ID", userDocId);
                 MutableDocument userDoc = userDatabase.getDocument(userDocId).toMutable();
                 userDoc.setString("hasLogin", "false");
                 userDatabase.save(userDoc);

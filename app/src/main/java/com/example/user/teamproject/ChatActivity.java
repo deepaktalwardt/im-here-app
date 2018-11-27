@@ -31,12 +31,15 @@ import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.DataSource;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.DatabaseConfiguration;
+import com.couchbase.lite.Document;
 import com.couchbase.lite.Expression;
 import com.couchbase.lite.MutableDocument;
 import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryBuilder;
 import com.couchbase.lite.ResultSet;
 import com.couchbase.lite.SelectResult;
+
+import org.ocpsoft.prettytime.PrettyTime;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,7 +51,10 @@ import java.net.Socket;
 import java.nio.channels.AsynchronousChannel;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.Date;
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -76,7 +82,7 @@ public class ChatActivity extends AppCompatActivity {
     ListView messageList;
 
     //friend info
-    String friendUUID, friendUsername;
+    String docID, friendUUID, friendUsername;
 
     static final int MESSAGE_READ = 1;
 
@@ -162,7 +168,8 @@ public class ChatActivity extends AppCompatActivity {
 
                     // Create a new document (i.e. a record) in the database.
                     MutableDocument friendDoc = new MutableDocument();
-
+                    docID = friendDoc.getId();
+                    friendDoc.setString("docID", docID);
                     //imply the owner of friends by UUID, maybe other info
                         /*
                         friendDoc.setString("myUUID", myUUID);
@@ -238,6 +245,23 @@ public class ChatActivity extends AppCompatActivity {
                         message.setInt("index", count);
                         message.setValue("model", model);
                         chatDatabase.save(message);
+
+                        //get time
+                        try {
+                            friendDatabase = new Database("friendList", DBconfig);
+                            Query query = QueryBuilder.select(SelectResult.property("docID"))
+                                    .from(DataSource.database(friendDatabase))
+                                    .where(Expression.property("friendUUID").equalTo(Expression.string(friendUUID)));
+                            ResultSet rs = query.execute();
+                            docID = rs.allResults().get(0).getString("docID");
+                            MutableDocument friendDoc = friendDatabase.getDocument(docID).toMutable();
+                            PrettyTime prettyTime = new PrettyTime(Locale.getDefault());
+                            String ago = prettyTime.format(new Date(String.valueOf(Calendar.getInstance().getTime())));
+                            friendDoc.setString("time", ago);
+                            friendDatabase.save(friendDoc);
+                        } catch (CouchbaseLiteException e) {
+                            e.printStackTrace();
+                        }
                     } catch (CouchbaseLiteException e) {
                         e.printStackTrace();
                     }
