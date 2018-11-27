@@ -1,5 +1,6 @@
 package com.example.user.teamproject;
 
+import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -31,15 +32,21 @@ import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.DataSource;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.DatabaseConfiguration;
+
 import com.couchbase.lite.Document;
-import com.couchbase.lite.Expression;
 import com.couchbase.lite.MutableDocument;
+import com.couchbase.lite.Expression;
 import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryBuilder;
 import com.couchbase.lite.ResultSet;
+import com.couchbase.lite.Result;
 import com.couchbase.lite.SelectResult;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import org.ocpsoft.prettytime.PrettyTime;
+
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,6 +56,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.channels.AsynchronousChannel;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -57,7 +65,6 @@ import java.util.Locale;
 import java.util.Date;
 
 public class ChatActivity extends AppCompatActivity {
-
 
     // WiFi Objects
     WifiManager wifiManager;
@@ -81,13 +88,18 @@ public class ChatActivity extends AppCompatActivity {
     EditText entryBox;
     ListView messageList;
 
-    //friend info
+    // Self Identifiers
+    String selfUsername;
+    String selfUUID;
+
+    // Friend Identifiers
     String docID, friendUUID, friendUsername;
 
-    static final int MESSAGE_READ = 1;
+    // Databases
+    Database userListDatabase;
+    Database chatRoomDatabase;
 
-    //database declaration
-    Database friendDatabase, chatDatabase = null;
+    static final int MESSAGE_READ =  1;
 
 
     @Override
@@ -97,12 +109,12 @@ public class ChatActivity extends AppCompatActivity {
         DatabaseConfiguration DBconfig = new DatabaseConfiguration(getApplicationContext());
 
         Intent intent = getIntent();
-        getSupportActionBar().setTitle(intent.getStringExtra("FriendUsername"));
+//        getSupportActionBar().setTitle(intent.getStringExtra("deviceName").substring(5));
 
         wireUiToVars();
         setupObjects();
 
-        initiateConnection(intent.getStringExtra("deviceType"));
+//        initiateConnection(intent.getStringExtra("deviceType"));
 
 //        msgList = new ArrayList<>();
 //        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, msgList);
@@ -110,19 +122,61 @@ public class ChatActivity extends AppCompatActivity {
 //        adapter = new CustomAdapter(this, msgList);
 //        messageList.setAdapter(adapter);
 
-        sendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String textToSend = entryBox.getText().toString();
-                ChatModel model = new ChatModel(textToSend, true);
-                adapter = new CustomAdapter(getApplicationContext(), msgList);
-                messageList.setAdapter(adapter);
-                entryBox.setText("");
-                sendReceive.write(textToSend.getBytes());
-                msgList.add(model);
-                adapter.notifyDataSetChanged();
-            }
-        });
+        // Get own information from userList Database and save to constants
+//        try {
+//            DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
+//            userListDatabase = new Database("userList", config);
+//
+//            Query query = QueryBuilder.select(SelectResult.property("username"), SelectResult.property("UUID"), SelectResult.property("hasLogin"))
+//                    .from(DataSource.database(userListDatabase))
+//                    .where(Expression.property("hasLogin").equalTo(Expression.string("true")));
+//
+//            com.couchbase.lite.ResultSet rs = query.execute();
+//            for (Result result: rs) {
+//                if (result.getString("hasLogin").equals("true")) {
+//                    selfUsername = result.getString("username");
+//                    selfUUID = result.getString("UUID");
+//                }
+////                Log.d("ChatActivity", "username: " + result.getString("username"));
+////                Log.d("ChatActivity", "UUID: " + result.getString("UUID"));
+////                Log.d("ChatActivity", "hasLogin: " + result.getString("hasLogin"));
+//            }
+//
+//        } catch (CouchbaseLiteException ce) {
+//            Log.d("ChatActivity", "Couldn't retrieve from the database");
+//            ce.printStackTrace();
+//        }
+
+        // Check if friend database exists, if no, create a new one
+//        try {
+//            DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
+//
+//        }
+
+
+//        sendButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                try {
+//                    String metadata = createJSONMeta(selfUUID, selfUsername);
+//                    Log.d("Chat Activity", "uuid: "+ selfUUID);
+//                    Log.d("Chat Activity", "username" + selfUsername);
+//                    Log.d("Chat Activity", metadata);
+//                    sendReceive.write(metadata.getBytes());
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+//
+//                String textToSend = entryBox.getText().toString();
+//                ChatModel model = new ChatModel(textToSend, true);
+//                adapter = new CustomAdapter(getApplicationContext(), msgList);
+//                messageList.setAdapter(adapter);
+//                entryBox.setText("");
+//                sendReceive.write(textToSend.getBytes());
+//                msgList.add(model);
+//                adapter.notifyDataSetChanged();
+//            }
+//        });
     }
 
     private void wireUiToVars() {
@@ -137,7 +191,7 @@ public class ChatActivity extends AppCompatActivity {
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
 
-        mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);
+//        mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);
 
         mIntentFilter = new IntentFilter();
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
@@ -224,7 +278,6 @@ public class ChatActivity extends AppCompatActivity {
                 case MESSAGE_READ:
                     byte[] readBuff = (byte[]) msg.obj;
                     String tempMsg = new String(readBuff, 0, msg.arg1);
-                    // TODO: add chat bubble here and remove Toast
 //                    Toast.makeText(getApplicationContext(), tempMsg, Toast.LENGTH_LONG).show();
                     ChatModel model = new ChatModel(tempMsg, false);
                     adapter = new CustomAdapter(getApplicationContext(), msgList);
@@ -271,6 +324,33 @@ public class ChatActivity extends AppCompatActivity {
         }
     });
 
+    private String createJSONMeta(String uuid, String username) throws JSONException {
+        try {
+            JSONObject meta = new JSONObject();
+            meta.put("type", "meta");
+            meta.put("UUID", uuid);
+            meta.put("username", username);
+            Log.d("Chat Activity", "meta: " + meta.toString());
+            return meta.toString();
+        } catch (JSONException ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
+    private String createJSONChat(String msg, String lat, String lon) throws JSONException {
+        try {
+            JSONObject chat = new JSONObject();
+            chat.put("type", "chat");
+            chat.put("lat", lat);
+            chat.put("lon", lon);
+            return chat.toString();
+        } catch (JSONException ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
     public WifiP2pManager.ConnectionInfoListener connectionInfoListener = new WifiP2pManager.ConnectionInfoListener() {
         @Override
         public void onConnectionInfoAvailable(WifiP2pInfo info) {
@@ -280,12 +360,15 @@ public class ChatActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "Host", Toast.LENGTH_SHORT).show();
                 serverClass = new ServerClass();
                 serverClass.start();
+                // TODO: Send data about myself to the client
+
 
             } else if (info.groupFormed && !info.isGroupOwner) {
                 Log.d("Chat Activity", "goAddress populated");
                 goAddress = groupOwnerAddress;
                 clientClass = new ClientClass(goAddress);
                 clientClass.start();
+
             }
         }
     };
