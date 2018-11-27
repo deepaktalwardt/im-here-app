@@ -68,6 +68,8 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     private double myLat;
     private double myLon;
 
+    private Location myLocation = new Location("me");
+    private Location target = new Location("target");
     public void OnRequestPermissionsResultCallback(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResult) {
         switch (requestCode) {
             case REQUEST_CAMERA_PERMISSION_ID:
@@ -98,7 +100,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         targetDirection = findViewById(R.id.targetDirection);
         TextRecognizer textRecognizer = new TextRecognizer.Builder(getApplicationContext()).build();
         if (!textRecognizer.isOperational()) {
-            Log.w("AR", "We  are in trouble");
+            Log.w("AR", "We are in trouble");
         } else {
             cameraSource = new CameraSource.Builder(getApplicationContext(), textRecognizer)
                     .setFacing(CameraSource.CAMERA_FACING_BACK)
@@ -181,6 +183,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
             public void onLocationChanged(android.location.Location location) {
                 myLat = location.getLatitude();
                 myLon = location.getLongitude();
+                myLocation = location;
                 distance.setText(calculateDistance(myLat, myLon, 37.422061, -121.872090));
             }
 
@@ -205,6 +208,9 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         isLocationEnabled();
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+
+        target.setLatitude(37.422061);
+        target.setLongitude(-121.872090);
     }
 
     private void isLocationEnabled() {
@@ -262,7 +268,12 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     public void onSensorChanged(SensorEvent event) {
         //updateDistance();
 
-//        int degree = Math.round(event.values[0]);
+        float degree = Math.round(event.values[0]);
+        if (myLocation != null) {
+            float bearing = myLocation.bearingTo(target);
+            degree = (bearing - degree) * -1;
+            degree = normalizeDegree(degree);
+        }
 //        String direcitonText = "";
 //        if (degree <= 20 || degree > 335) {
 //            direcitonText = "N";
@@ -285,13 +296,21 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 //        }
 //        direction.setText(Integer.toString(degree) + (char) 0x00B0 + "  " + direcitonText);
 
-        targetDirection.setText(calculateDirection(myLat, myLon, 37.422061, -121.872090));
-        RotateAnimation rotateAnimation = new RotateAnimation(curDegree, (float) -degree,
+        targetDirection.setText("Heading " + Float.toString(degree) + " to Friend");
+        RotateAnimation rotateAnimation = new RotateAnimation(curDegree, -degree,
                 Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
         rotateAnimation.setDuration(1000);
         rotateAnimation.setFillAfter(true);
         arrow.startAnimation(rotateAnimation);
-        curDegree = (float) -degree;
+        curDegree = -degree;
+    }
+
+    private float normalizeDegree(float value) {
+        if (value >= 0.0f && value <= 180.0f) {
+            return value;
+        } else {
+            return 180 + (180 + value);
+        }
     }
 
     private String calculateDistance(double lat, double lon, double myLat, double myLon) {
