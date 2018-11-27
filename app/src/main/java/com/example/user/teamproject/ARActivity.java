@@ -2,16 +2,23 @@ package com.example.user.teamproject;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.SparseArray;
@@ -23,12 +30,18 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.vision.CameraSource;
 import com.google.android.gms.vision.Detector;
 import com.google.android.gms.vision.text.TextBlock;
 import com.google.android.gms.vision.text.TextRecognizer;
 
 import java.io.IOException;
+
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
 
 /**
@@ -37,15 +50,24 @@ import java.io.IOException;
 
 public class ARActivity extends AppCompatActivity implements SensorEventListener {
     SurfaceView cameraView;
-    TextView textView;
+    TextView direction;
     ImageView arrow;
+    TextView distance;
+    TextView targetDirection;
     CameraSource cameraSource;
     final int REQUEST_CAMERA_PERMISSION_ID = 1001;
 
     private static SensorManager sensorManager;
-    private  Sensor sensor;
+    private Sensor sensor;
+    LocationManager locationManager;
+    Context context;
+    LocationResult locationResult;
 
-    private  float curDegree = 0f;
+    private float curDegree = 0f;
+    private double degree;
+    private double myLat;
+    private double myLon;
+
     public void OnRequestPermissionsResultCallback(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResult) {
         switch (requestCode) {
             case REQUEST_CAMERA_PERMISSION_ID:
@@ -62,17 +84,21 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                 }
         }
     }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ar);
-
+        context = this;
+        ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION}, 1);
         cameraView = (SurfaceView) findViewById(R.id.surface_view);
-        textView = (TextView) findViewById(R.id.text_view);
+        direction = (TextView) findViewById(R.id.direction);
         arrow = findViewById(R.id.arrow);
+        distance = findViewById(R.id.distance);
+        targetDirection = findViewById(R.id.targetDirection);
         TextRecognizer textRecognizer = new TextRecognizer.Builder(getApplicationContext()).build();
         if (!textRecognizer.isOperational()) {
-            Log.w("AR", "We fucked up");
+            Log.w("AR", "We  are in trouble");
         } else {
             cameraSource = new CameraSource.Builder(getApplicationContext(), textRecognizer)
                     .setFacing(CameraSource.CAMERA_FACING_BACK)
@@ -135,59 +161,169 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
             });
         }
 
+//        this.locationResult = new LocationResult(){
+//            @Override
+//            public void gotLocation(Location location){
+//
+//                //Got the location!
+//                if(location!=null){
+//                    myLat = location.getLatitude();
+//                    myLon = location.getLongitude();
+//
+//
+//                }
+//            }
+//
+//        };
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        LocationListener locationListenerGPS = new LocationListener() {
+            @Override
+            public void onLocationChanged(android.location.Location location) {
+                myLat = location.getLatitude();
+                myLon = location.getLongitude();
+                distance.setText(calculateDistance(myLat, myLon, 37.422061, -121.872090));
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+
+            }
+        };
+        locationManager.requestLocationUpdates( LocationManager.GPS_PROVIDER,
+                1000,
+                1, locationListenerGPS);
+        isLocationEnabled();
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
     }
 
+    private void isLocationEnabled() {
+
+        if(!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            AlertDialog.Builder alertDialog=new AlertDialog.Builder(context);
+            alertDialog.setTitle("Enable Location");
+            alertDialog.setMessage("Your locations setting is not enabled. Please enabled it in settings menu.");
+            alertDialog.setPositiveButton("Location Settings", new DialogInterface.OnClickListener(){
+                public void onClick(DialogInterface dialog, int which){
+                    Intent intent=new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                    startActivity(intent);
+                }
+            });
+            alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener(){
+                public void onClick(DialogInterface dialog, int which){
+                    dialog.cancel();
+                }
+            });
+            AlertDialog alert=alertDialog.create();
+            alert.show();
+        }
+        else{
+            AlertDialog.Builder alertDialog=new AlertDialog.Builder(context);
+            alertDialog.setTitle("Confirm Location");
+            alertDialog.setMessage("Your Location is enabled, please enjoy");
+            alertDialog.setNegativeButton("Back to interface",new DialogInterface.OnClickListener(){
+                public void onClick(DialogInterface dialog, int which){
+                    dialog.cancel();
+                }
+            });
+            AlertDialog alert=alertDialog.create();
+            alert.show();
+        }
+    }
     @Override
     protected void onResume() {
         super.onResume();
 
         if (sensor != null) {
-            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_FASTEST);
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
         } else {
             Toast.makeText(this, "Not supported", Toast.LENGTH_SHORT).show();
         }
+        isLocationEnabled();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-
         sensorManager.unregisterListener(this);
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        int degree = Math.round(event.values[0]);
-        String direciton = "";
-        if (degree <= 20 || degree > 335) {
-            direciton = "N";
-        } else if (degree > 20 && degree <= 65) {
-            direciton = "NE";
-        } else if (degree > 65 && degree <= 110) {
-            direciton = "E";
-        } else if (degree > 110 && degree <= 155) {
-            direciton = "SE";
-        } else if (degree > 155 && degree <= 200) {
-            direciton = "S";
-        } else if (degree > 200 && degree <= 245) {
-            direciton = "SW";
-        } else if (degree > 245 && degree <= 290) {
-            direciton = "W";
-        } else if (degree > 290 && degree <= 335) {
-            direciton = "NW";
-        } else {
-            direciton = "";
-        }
-        textView.setText(Integer.toString(degree) + (char) 0x00B0 + "  " + direciton);
+        //updateDistance();
 
-        RotateAnimation rotateAnimation = new RotateAnimation(curDegree, -degree,
-                Animation.RELATIVE_TO_SELF, 0.5f,Animation.RELATIVE_TO_SELF, 0.5f);
+//        int degree = Math.round(event.values[0]);
+//        String direcitonText = "";
+//        if (degree <= 20 || degree > 335) {
+//            direcitonText = "N";
+//        } else if (degree > 20 && degree <= 65) {
+//            direcitonText = "NE";
+//        } else if (degree > 65 && degree <= 110) {
+//            direcitonText = "E";
+//        } else if (degree > 110 && degree <= 155) {
+//            direcitonText = "SE";
+//        } else if (degree > 155 && degree <= 200) {
+//            direcitonText = "S";
+//        } else if (degree > 200 && degree <= 245) {
+//            direcitonText = "SW";
+//        } else if (degree > 245 && degree <= 290) {
+//            direcitonText = "W";
+//        } else if (degree > 290 && degree <= 335) {
+//            direcitonText = "NW";
+//        } else {
+//            direcitonText = "";
+//        }
+//        direction.setText(Integer.toString(degree) + (char) 0x00B0 + "  " + direcitonText);
+
+        targetDirection.setText(calculateDirection(myLat, myLon, 37.422061, -121.872090));
+        RotateAnimation rotateAnimation = new RotateAnimation(curDegree, (float) -degree,
+                Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
         rotateAnimation.setDuration(1000);
         rotateAnimation.setFillAfter(true);
         arrow.startAnimation(rotateAnimation);
-        curDegree = -degree;
+        curDegree = (float) -degree;
+    }
+
+    private String calculateDistance(double lat, double lon, double myLat, double myLon) {
+        double dLat = (myLat - lat) * (Math.PI / 180);
+        double dLon = (myLon - lon) * (Math.PI / 180);
+        double a =
+                Math.sin(dLat/2) * Math.sin(dLat/2)
+                + Math.cos(lat * (Math.PI / 180)) * Math.cos(myLat  * (Math.PI / 180))
+                * Math.sin(dLon/2) * Math.sin(dLon/2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        double d = 6371 * c * 1000;
+        return String.format("%.2f", d) + "m";
+
+    }
+
+    private String calculateDirection(double lat1, double lon1, double lat2, double lon2) {
+        double longitude1 = lon1;
+        double longitude2 = lon2;
+        double latitude1 = Math.toRadians(lat1);
+        double latitude2 = Math.toRadians(lat2);
+        double longDiff = Math.toRadians(longitude2 - longitude1);
+        double y = Math.sin(longDiff) * Math.cos(latitude2);
+        double x = Math.cos(latitude1) * Math.sin(latitude2) - Math.sin(latitude1) * Math.cos(latitude2) * Math.cos(longDiff);
+        double resultDegree = (Math.toDegrees(Math.atan2(y, x)) + 360) % 360;
+        String coordNames[] = {"N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "N"};
+        double directionid = Math.round(resultDegree / 22.5);
+        if (directionid < 0) {
+            directionid = directionid + 16;
+        }
+        String compasLoc = coordNames[(int) directionid];
+        degree = (float) resultDegree;
+        return String.format("%.2f", resultDegree) + " " + compasLoc;
     }
 
     @Override
