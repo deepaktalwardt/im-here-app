@@ -7,6 +7,8 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -29,16 +31,54 @@ import com.couchbase.lite.Database;
 import com.couchbase.lite.DatabaseConfiguration;
 import com.couchbase.lite.MutableDocument;
 
+import org.ocpsoft.prettytime.PrettyTime;
+
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
-    ImageView HomeImage;
+    private RecyclerView mRecyclerView;
+    private FriendListAdapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
+    ImageView HomeImage, status;
     TextView HomeUUID, HomeUsername;
+    String friendUsername, friendUUID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        final ArrayList<Friend_card> friendList = new ArrayList<>();
+
+        //remove later
+        PrettyTime prettyTime = new PrettyTime(Locale.getDefault());
+        String ago = prettyTime.format(new Date(String.valueOf(Calendar.getInstance().getTime())));
+        int connection = 1;
+        friendList.add(new Friend_card("kles", "kles835135248", ago, connection));
+
+        mRecyclerView = findViewById(R.id.recyclerView);
+        mRecyclerView.setHasFixedSize(true);
+        mLayoutManager = new LinearLayoutManager(this);
+        mAdapter = new FriendListAdapter(friendList);
+
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.setAdapter(mAdapter);
+
+        mAdapter.setOnItemClickListener(new FriendListAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(int position) {
+                friendUsername = friendList.get(position).getUsername();
+                friendUUID = friendList.get(position).getUUID();
+                Intent intent = new Intent(HomeActivity.this, ChatActivity.class);
+                intent.putExtra("FriendUsername", friendUsername);
+                intent.putExtra("FriendUUID", friendUUID);
+
+                startActivity(intent);
+            }
+        });
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -77,6 +117,59 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         HomeUUID.setText(intent.getStringExtra("UUID"));
         HomeUsername = navigationView.getHeaderView(0).findViewById(R.id.NavHeaderUsername);
         HomeUsername.setText(intent.getStringExtra("Username"));
+
+        //open exist chat
+        try {
+            // Get the database (and create it if it doesn’t exist).
+            DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
+            Database friendDatabase = new Database("friendList", config);
+
+            /*
+            * //list all friend
+            * final ArrayList<Friend_card> friendList = new ArrayList<>();
+            *
+            * Query query = QueryBuilder.select(SelectResult.property("friendUUID"))
+                                .from(DataSource.database(friendDatabase))
+                                .where(Expression.property("friendUUID"));
+            * rs = query.execute();
+            * int i = 0, size = rs.allResults().size();;
+            * String referChatRoom;
+            * while( i < rs.allResults().size()){
+            *   rs = query.execute();
+            *   friendUUID = rs.allResults().get(i).getString("friendUUID");
+            *   rs = query.execute();
+            *   friendUsername = rs.allResults().get(i).getString("friendUsername");
+            *   rs = query.execute();
+            *   time = rs.allResults().get(i).getString("time");
+            *   int connection = 1;
+            *   friendList.add(new Friend_card(friendUsername, friendUUID, time, connection));
+            *   i++;
+            * }
+            *
+            * mRecyclerView = findViewById(R.id.recyclerView);
+                mRecyclerView.setHasFixedSize(true);
+                mLayoutManager = new LinearLayoutManager(this);
+                mAdapter = new FriendListAdapter(friendList);
+
+                mRecyclerView.setLayoutManager(mLayoutManager);
+                mRecyclerView.setAdapter(mAdapter);
+
+                mAdapter.setOnItemClickListener(new FriendListAdapter.OnItemClickListener() {
+                @Override
+                public void onItemClick(int position) {
+                    friendUsername = friendList.get(position).getUsername();
+                    friendUUID = friendList.get(position).getUUID();
+                    Intent intent = new Intent(HomeActivity.this, ChatActivity.class);
+                    intent.putExtra("FriendUsername", friendUsername);
+                 intent.putExtra("FriendUUID", friendUUID);
+
+                 startActivity(intent);
+                }
+                });
+             */
+        } catch (CouchbaseLiteException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -114,7 +207,6 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 Database userDatabase = new Database("userList", config);
                 Intent intent = getIntent();
                 String userDocId = intent.getStringExtra("UserDocId");
-                Log.d("ID", userDocId);
                 MutableDocument userDoc = userDatabase.getDocument(userDocId).toMutable();
                 userDoc.setString("hasLogin", "false");
                 userDatabase.save(userDoc);

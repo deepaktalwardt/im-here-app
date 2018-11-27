@@ -8,9 +8,12 @@
     tools:context=".HomeActivity"
     tools:showIn="@layout/app_bar_home">
 
-    <ListView
-        android:layout_width="wrap_content"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/listView"/>
+        android:padding="4dp"
+        android:scrollbars="vertical"
+        android:background="@android:color/darker_gray"/>
 
 </RelativeLayout>
