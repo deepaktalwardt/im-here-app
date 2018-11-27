@@ -14,7 +14,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
     private UserDiscovery userDiscoveryActivity;
-    private ChatActivity chatActivity;
+    private ChatterActivity chatActivity;
 
     public WiFiDirectBroadcastReceiver(WifiP2pManager manager, WifiP2pManager.Channel channel, UserDiscovery userDiscoveryActivity) {
         this.mManager = manager;
@@ -23,7 +23,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         this.chatActivity = null;
     }
 
-    public WiFiDirectBroadcastReceiver(WifiP2pManager manager, WifiP2pManager.Channel channel, ChatActivity chatActivity) {
+    public WiFiDirectBroadcastReceiver(WifiP2pManager manager, WifiP2pManager.Channel channel, ChatterActivity chatActivity) {
         this.mManager = manager;
         this.mChannel = channel;
         this.chatActivity = chatActivity;
@@ -47,7 +47,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
                 if (userDiscoveryActivity != null) {
 
-                    mManager.requestPeers(mChannel, userDiscoveryActivity.peerListListener);
+//                    mManager.requestPeers(mChannel, userDiscoveryActivity.peerListListener);
                 } else {
                     // do nothing
                 }
@@ -59,13 +59,13 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                 if (userDiscoveryActivity != null) {
 
                     if (networkInfo.isConnected()) {
-                        mManager.requestConnectionInfo(mChannel, userDiscoveryActivity.connectionInfoListener);
+                        mManager.requestConnectionInfo(mChannel, (WifiP2pManager.ConnectionInfoListener) userDiscoveryActivity);
                     } else {
                         Toast.makeText(userDiscoveryActivity.getApplicationContext(), "Disconnected", Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     if (networkInfo.isConnected()) {
-                        mManager.requestConnectionInfo(mChannel, chatActivity.connectionInfoListener);
+//                        mManager.requestConnectionInfo(mChannel, chatActivity.connectionInfoListener);
                     } else {
                         Toast.makeText(chatActivity.getApplicationContext(), "Disconnected", Toast.LENGTH_SHORT).show();
                     }

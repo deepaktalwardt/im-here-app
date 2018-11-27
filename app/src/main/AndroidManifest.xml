@@ -24,8 +24,9 @@
             android:label="@string/title_activity_home"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".UserDiscovery" />
-        <activity android:name=".ChatActivity"></activity>
-        <activity android:name=".InitiateActivity"
+        <activity android:name=".ChatActivity" />
+        <activity
+            android:name=".InitiateActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -33,6 +34,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".ChatterActivity"></activity>
     </application>
 
 </manifest>
