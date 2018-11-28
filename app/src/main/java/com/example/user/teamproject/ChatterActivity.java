@@ -89,6 +89,11 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
     // Connection type
     String connectionType;
 
+    // Friend Location
+    String friendLon;
+    String friendLat;
+    Boolean metaSent = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -182,26 +187,40 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
             @Override
             public void onClick(View v) {
 
+                if (!metaSent) {
+                    try {
+                        String metadata = createJSONMeta(selfUUID, selfUsername);
+//                        ChatModel model = new ChatModel(metadata, true);
+//                        adapter = new CustomAdapter(getApplicationContext(), msgList);
+//                        messageList.setAdapter(adapter);
+                        sendReceive.write(metadata.getBytes());
+//                        msgList.add(model);
+//                        adapter.notifyDataSetChanged();
+                        metaSent = true;
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                String textToSend = entryBox.getText().toString();
+
+                // TODO: Get my current location
+                String myLat = "37.12345";
+                String myLon = "-122.12345";
+
                 try {
-                    String metadata = createJSONMeta(selfUUID, selfUsername);
-                    ChatModel model = new ChatModel(metadata, true);
+                    String packetToSend = createJSONChat(textToSend, myLat, myLon);
+                    sendReceive.write(packetToSend.getBytes());
+
+                    ChatModel model = new ChatModel(textToSend, true);
                     adapter = new CustomAdapter(getApplicationContext(), msgList);
                     messageList.setAdapter(adapter);
-                    sendReceive.write(metadata.getBytes());
+                    entryBox.setText("");
                     msgList.add(model);
                     adapter.notifyDataSetChanged();
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-
-                String textToSend = entryBox.getText().toString();
-                ChatModel model = new ChatModel(textToSend, true);
-                adapter = new CustomAdapter(getApplicationContext(), msgList);
-                messageList.setAdapter(adapter);
-                entryBox.setText("");
-                sendReceive.write(textToSend.getBytes());
-                msgList.add(model);
-                adapter.notifyDataSetChanged();
             }
         });
     }
@@ -456,15 +475,34 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
                     byte[] readBuff = (byte[]) msg.obj;
                     String tempMsg = new String(readBuff, 0, msg.arg1);
                     Toast.makeText(getApplicationContext(), tempMsg, Toast.LENGTH_LONG).show();
-                    ChatModel model = new ChatModel(tempMsg, false);
-                    adapter = new CustomAdapter(getApplicationContext(), msgList);
-
+//                    ChatModel model = new ChatModel(tempMsg, false);
+//                    adapter = new CustomAdapter(getApplicationContext(), msgList);
                     // TODO: Parse JSON Message and check if it is chat message,
                     // meta message or location message
-                    messageList.setAdapter(adapter);
-                    msgList.add(model);
-                    adapter.notifyDataSetChanged();
-                    Toast.makeText(getApplicationContext(), "Count:" + adapter.getCount(), Toast.LENGTH_LONG).show();
+                    try {
+                        JSONObject parsedMessage = new JSONObject(tempMsg);
+                        if (parsedMessage.get("type").equals("meta")) {
+                            friendUsername = parsedMessage.getString("username");
+                            friendUUID = parsedMessage.getString("UUID");
+                            getSupportActionBar().setTitle(friendUsername);
+
+                        } else if (parsedMessage.get("type").equals("chat")) {
+                            String message = parsedMessage.getString("message");
+                            friendLon = parsedMessage.getString("lon");
+                            friendLat = parsedMessage.getString("lat");
+
+                            ChatModel model = new ChatModel(message, false);
+                            adapter = new CustomAdapter(getApplicationContext(), msgList);
+                            messageList.setAdapter(adapter);
+                            msgList.add(model);
+                            adapter.notifyDataSetChanged();
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+
+//                    Toast.makeText(getApplicationContext(), "Count:" + adapter.getCount(), Toast.LENGTH_LONG).show();
 
                     // TODO: add to chat database
                     break;
@@ -493,6 +531,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
             chat.put("type", "chat");
             chat.put("lat", lat);
             chat.put("lon", lon);
+            chat.put("message", msg);
             return chat.toString();
         } catch (JSONException ex) {
             ex.printStackTrace();
@@ -507,8 +546,8 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
             serverClass = new ServerClass();
             serverClass.start();
             // TODO: Send data about myself to the client
-            getSupportActionBar().setTitle("New Device (" + friendUUID + ")");
-            connectionType = "groupOwner";
+            getSupportActionBar().setTitle("New Device");
+//            connectionType = "groupOwner";
 
 //            try {
 //                String metadata = createJSONMeta(selfUUID, selfUsername);
@@ -523,7 +562,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
             clientClass = new ClientClass(goAddress);
             clientClass.start();
             getSupportActionBar().setTitle("Group Owner@" + groupOwnerAddress.toString());
-            connectionType = "client";
+//            connectionType = "client";
 
 //            try {
 //                String metadata = createJSONMeta(selfUUID, selfUsername);
