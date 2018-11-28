@@ -66,7 +66,6 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     private Sensor sensor;
     LocationManager locationManager;
     Context context;
-    LocationResult locationResult;
 
     private float curDegree = 0f;
     private double degree;
@@ -97,8 +96,11 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ar);
+
         context = this;
         ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION}, 1);
+
+        // Binding the views
         cameraView = (SurfaceView) findViewById(R.id.surface_view);
         direction = (TextView) findViewById(R.id.direction);
         arrow = findViewById(R.id.arrow);
@@ -106,6 +108,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         pin.setVisibility(View.GONE);
         distance = findViewById(R.id.distance);
         targetDirection = findViewById(R.id.targetDirection);
+
         TextRecognizer textRecognizer = new TextRecognizer.Builder(getApplicationContext()).build();
         if (!textRecognizer.isOperational()) {
             Log.w("AR", "We are in trouble");
@@ -171,20 +174,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
             });
         }
 
-//        this.locationResult = new LocationResult(){
-//            @Override
-//            public void gotLocation(Location location){
-//
-//                //Got the location!
-//                if(location!=null){
-//                    myLat = location.getLatitude();
-//                    myLon = location.getLongitude();
-//
-//
-//                }
-//            }
-//
-//        };
+        // Setup the location manager to get the device location
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         LocationListener locationListenerGPS = new LocationListener() {
             @Override
@@ -214,9 +204,12 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                 1000,
                 1, locationListenerGPS);
         isLocationEnabled();
+
+        // Setup orientation sensor
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
 
+        // Get the target device's location
         target.setLatitude(37.354514);
         target.setLongitude(-121.938059);
     }
@@ -242,33 +235,37 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
             alert.show();
         }
         else{
-            AlertDialog.Builder alertDialog=new AlertDialog.Builder(context);
-            alertDialog.setTitle("Confirm Location");
-            alertDialog.setMessage("Your Location is enabled, please enjoy");
-            alertDialog.setNegativeButton("Back to interface",new DialogInterface.OnClickListener(){
-                public void onClick(DialogInterface dialog, int which){
-                    dialog.cancel();
-                }
-            });
-            AlertDialog alert=alertDialog.create();
-            alert.show();
+//            AlertDialog.Builder alertDialog=new AlertDialog.Builder(context);
+//            alertDialog.setTitle("Confirm Location");
+//            alertDialog.setMessage("Your Location is enabled, please enjoy");
+//            alertDialog.setNegativeButton("Back to interface",new DialogInterface.OnClickListener(){
+//                public void onClick(DialogInterface dialog, int which){
+//                    dialog.cancel();
+//                }
+//            });
+//            AlertDialog alert=alertDialog.create();
+//            alert.show();
         }
     }
     @Override
     protected void onResume() {
         super.onResume();
 
+        //Keep the sensor listening
         if (sensor != null) {
             sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
         } else {
             Toast.makeText(this, "Not supported", Toast.LENGTH_SHORT).show();
         }
+
         isLocationEnabled();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+
+        //Stop the sensor
         sensorManager.unregisterListener(this);
     }
 
@@ -276,7 +273,10 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     public void onSensorChanged(SensorEvent event) {
         //updateDistance();
 
+        // Get the angle between my device and north
         float degree = Math.round(event.values[0]);
+
+        // Calculate the angle between my device to the target device
         if (myLocation != null) {
             float bearing = myLocation.bearingTo(target);
 
@@ -294,7 +294,8 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 //            Math.round(-degree / 360 + 180);
         }
 
-
+        // If my device is pointing towards the target device, we have a pin on camera
+        // indicate the target device location
         if (degree <= 20 || degree >= 340) {
             pin.setVisibility(View.VISIBLE);
             pin.setY(400);
@@ -317,6 +318,8 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 //            Log.d("rect", "x is " + Float.toString(x));
 //            Log.d("rect", "y is " + Float.toString(y));
         } else {
+            // If my device is not pointing towards the target device
+            // we don't show the pin
             pin.setVisibility(View.GONE);
         }
 
@@ -342,23 +345,25 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 //        }
 //        direction.setText(Integer.toString(degree) + (char) 0x00B0 + "  " + direcitonText);
 
-        targetDirection.setText("Heading " + Float.toString(degree) + " to Friend");
+        // Perform the arrow animation
+        targetDirection.setText("Heading " + Float.toString(degree));
         RotateAnimation rotateAnimation = new RotateAnimation(curDegree, -degree,
                 Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
         rotateAnimation.setDuration(1000);
         rotateAnimation.setFillAfter(true);
         arrow.startAnimation(rotateAnimation);
 
+        // Update the angle in degree
         curDegree = degree;
     }
 
-    private float normalizeDegree(float value) {
-        if (value >= 0.0f && value <= 180.0f) {
-            return value;
-        } else {
-            return 180 + (180 + value);
-        }
-    }
+//    private float normalizeDegree(float value) {
+//        if (value >= 0.0f && value <= 180.0f) {
+//            return value;
+//        } else {
+//            return 180 + (180 + value);
+//        }
+//    }
 
     private String calculateDistance(double lat, double lon, double myLat, double myLon) {
         double dLat = (myLat - lat) * (Math.PI / 180);
@@ -373,32 +378,28 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 
     }
 
-    private String calculateDirection(double lat1, double lon1, double lat2, double lon2) {
-        double longitude1 = lon1;
-        double longitude2 = lon2;
-        double latitude1 = Math.toRadians(lat1);
-        double latitude2 = Math.toRadians(lat2);
-        double longDiff = Math.toRadians(longitude2 - longitude1);
-        double y = Math.sin(longDiff) * Math.cos(latitude2);
-        double x = Math.cos(latitude1) * Math.sin(latitude2) - Math.sin(latitude1) * Math.cos(latitude2) * Math.cos(longDiff);
-        double resultDegree = (Math.toDegrees(Math.atan2(y, x)) + 360) % 360;
-        String coordNames[] = {"N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "N"};
-        double directionid = Math.round(resultDegree / 22.5);
-        if (directionid < 0) {
-            directionid = directionid + 16;
-        }
-        String compasLoc = coordNames[(int) directionid];
-        degree = (float) resultDegree;
-        return String.format("%.2f", resultDegree) + " " + compasLoc;
-    }
+//    private String calculateDirection(double lat1, double lon1, double lat2, double lon2) {
+//        double longitude1 = lon1;
+//        double longitude2 = lon2;
+//        double latitude1 = Math.toRadians(lat1);
+//        double latitude2 = Math.toRadians(lat2);
+//        double longDiff = Math.toRadians(longitude2 - longitude1);
+//        double y = Math.sin(longDiff) * Math.cos(latitude2);
+//        double x = Math.cos(latitude1) * Math.sin(latitude2) - Math.sin(latitude1) * Math.cos(latitude2) * Math.cos(longDiff);
+//        double resultDegree = (Math.toDegrees(Math.atan2(y, x)) + 360) % 360;
+//        String coordNames[] = {"N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "N"};
+//        double directionid = Math.round(resultDegree / 22.5);
+//        if (directionid < 0) {
+//            directionid = directionid + 16;
+//        }
+//        String compasLoc = coordNames[(int) directionid];
+//        degree = (float) resultDegree;
+//        return String.format("%.2f", resultDegree) + " " + compasLoc;
+//    }
 
     @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-    }
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 
     @Override
-    public void onPointerCaptureChanged(boolean hasCapture) {
-
-    }
+    public void onPointerCaptureChanged(boolean hasCapture) {}
 }
