@@ -159,13 +159,13 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
                 WiFiP2pService service = serviceList.get(position);
-//                selectedService = service;
-//                Intent intent = new Intent(getApplicationContext(), ChatterActivity.class);
-//                intent.putExtra("service", selectedService);
-//                intent.putExtra("deviceType", "host");
-//                startActivity(intent);
-//                finish();
-                connectP2p(service);
+                selectedService = service;
+                Intent intent = new Intent(getApplicationContext(), ChatterActivity.class);
+                intent.putExtra("service", selectedService);
+                intent.putExtra("deviceType", "initConnection");
+                startActivity(intent);
+                finish();
+//                connectP2p(service);
             }
         });
     }
@@ -384,10 +384,13 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
         if (p2pInfo.groupFormed) {
             if (p2pInfo.isGroupOwner) {
                 Log.d("Host", "Connected as group owner");
-//                intent.putExtra("friendUUID", selectedService.getUuid());
-//                intent.putExtra("friendUsername", selectedService.getUsername());
-//                startActivity(intent);
-//                finish();
+                Intent intent = new Intent(getApplicationContext(), ChatterActivity.class);
+                WiFiP2pService service = new WiFiP2pService();
+                intent.putExtra("service", service);
+                intent.putExtra("deviceType", "recvConnection");
+                service.setGroupOwnerAddress(p2pInfo.groupOwnerAddress);
+                startActivity(intent);
+                finish();
             } else {
 //                Log.d("P2PInfoClient", p2pInfo.toString());
                 Intent intent = new Intent(getApplicationContext(), ChatterActivity.class);
@@ -397,7 +400,7 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
                 service.setGroupOwnerAddress(p2pInfo.groupOwnerAddress);
 //                service.setDeviceType("client");
                 intent.putExtra("service", service);
-                intent.putExtra("deviceType", "client");
+                intent.putExtra("deviceType", "recvConnection");
 
 //                mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener() {
 //                    @Override

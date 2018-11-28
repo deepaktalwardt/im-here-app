@@ -50,7 +50,8 @@ import java.util.Map;
 import static com.example.user.teamproject.InitiateActivity.SERVICE_INSTANCE;
 import static com.example.user.teamproject.InitiateActivity.SERVICE_REG_TYPE;
 
-public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, WifiP2pManager.ConnectionInfoListener {
+//public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, WifiP2pManager.ConnectionInfoListener {
+public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private RecyclerView mRecyclerView;
     private FriendListAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
@@ -58,15 +59,15 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     TextView HomeUUID, HomeUsername;
     String friendUsername, friendUUID;
     FloatingActionButton fab;
-    FloatingActionButton fab2;
-
-    WifiP2pManager mManager;
-    WifiP2pManager.Channel mChannel;
-    WiFiDirectBroadcastReceiver mReceiver;
-    IntentFilter mIntentFilter;
-
-    String myUUID;
-    String myUsername;
+//    FloatingActionButton fab2;
+//
+//    WifiP2pManager mManager;
+//    WifiP2pManager.Channel mChannel;
+//    WiFiDirectBroadcastReceiver mReceiver;
+//    IntentFilter mIntentFilter;
+//
+//    String myUUID;
+//    String myUsername;
 
 
     @Override
@@ -103,14 +104,14 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
-        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
-        mChannel = mManager.initialize(this, getMainLooper(), null);
-        mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);
-
-        mIntentFilter = new IntentFilter();
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+//        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
+//        mChannel = mManager.initialize(this, getMainLooper(), null);
+//        mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);
+//
+//        mIntentFilter = new IntentFilter();
+//        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+//        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+//        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
         fab = findViewById(R.id.fab);
 
@@ -124,14 +125,14 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
-        fab2 = findViewById(R.id.fab2);
-        fab2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Create Group for WiFi Direct
-                createWifiP2pGroup();
-            }
-        });
+//        fab2 = findViewById(R.id.fab2);
+//        fab2.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                // Create Group for WiFi Direct
+//                createWifiP2pGroup();
+//            }
+//        });
 
         //navigation drawer
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -265,77 +266,77 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
-    public void createWifiP2pGroup() {
-        startRegistration();
-
-        mManager.createGroup(mChannel, new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
-                Toast toast = Toast.makeText(getApplicationContext(), "Group Created", Toast.LENGTH_SHORT);
-                toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
-                toast.show();
-            }
-
-            @Override
-            public void onFailure(int reason) {
-                Toast toast = Toast.makeText(getApplicationContext(), "Group Created", Toast.LENGTH_SHORT);
-                toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
-                toast.show();
-            }
-        });
-    }
+//    public void createWifiP2pGroup() {
+//        startRegistration();
+//
+//        mManager.createGroup(mChannel, new WifiP2pManager.ActionListener() {
+//            @Override
+//            public void onSuccess() {
+//                Toast toast = Toast.makeText(getApplicationContext(), "Group Created", Toast.LENGTH_SHORT);
+//                toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+//                toast.show();
+//            }
+//
+//            @Override
+//            public void onFailure(int reason) {
+//                Toast toast = Toast.makeText(getApplicationContext(), "Group Created", Toast.LENGTH_SHORT);
+//                toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+//                toast.show();
+//            }
+//        });
+//    }
 
     /**
      * Registers a local service and then initiates a service discovery
      */
-    private void startRegistration() {
-        Intent intent = getIntent();
-        myUUID = intent.getStringExtra("UUID");
-        myUsername = intent.getStringExtra("Username");
+//    private void startRegistration() {
+//        Intent intent = getIntent();
+//        myUUID = intent.getStringExtra("UUID");
+//        myUsername = intent.getStringExtra("Username");
+//
+//        final Map<String, String> record = new HashMap<String, String>();
+//        record.put("available", "visible");
+//        record.put("Name", "imhere!!!");
+//        record.put("myUUID", myUUID);
+//        record.put("myUsername", myUsername);
+//
+//        WifiP2pDnsSdServiceInfo service = WifiP2pDnsSdServiceInfo.newInstance(
+//                SERVICE_INSTANCE, SERVICE_REG_TYPE, record);
+//
+//        mManager.addLocalService(mChannel, service, new WifiP2pManager.ActionListener() {
+//            @Override
+//            public void onSuccess() {
+//                Toast.makeText(getApplicationContext(),"Successfully added " + myUUID, Toast.LENGTH_SHORT).show();
+//            }
+//            @Override
+//            public void onFailure(int error) {
+//                Toast.makeText(getApplicationContext(),"Failed to add service", Toast.LENGTH_SHORT).show();
+//            }
+//        });
+//    }
+//
+//    @Override
+//    public void onConnectionInfoAvailable(WifiP2pInfo info) {
+//        if (info.groupFormed) {
+//            if (info.isGroupOwner) {
+//                Intent intent = new Intent(getApplicationContext(), ChatterActivity.class);
+//                WiFiP2pService service = new WiFiP2pService();
+//                intent.putExtra("service", service);
+//                intent.putExtra("deviceType", "groupOwner");
+//                startActivity(intent);
+//            }
+//        }
+//    }
 
-        final Map<String, String> record = new HashMap<String, String>();
-        record.put("available", "visible");
-        record.put("Name", "imhere!!!");
-        record.put("myUUID", myUUID);
-        record.put("myUsername", myUsername);
-
-        WifiP2pDnsSdServiceInfo service = WifiP2pDnsSdServiceInfo.newInstance(
-                SERVICE_INSTANCE, SERVICE_REG_TYPE, record);
-
-        mManager.addLocalService(mChannel, service, new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
-                Toast.makeText(getApplicationContext(),"Successfully added " + myUUID, Toast.LENGTH_SHORT).show();
-            }
-            @Override
-            public void onFailure(int error) {
-                Toast.makeText(getApplicationContext(),"Failed to add service", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    @Override
-    public void onConnectionInfoAvailable(WifiP2pInfo info) {
-        if (info.groupFormed) {
-            if (info.isGroupOwner) {
-                Intent intent = new Intent(getApplicationContext(), ChatterActivity.class);
-                WiFiP2pService service = new WiFiP2pService();
-                intent.putExtra("service", service);
-                intent.putExtra("deviceType", "groupOwner");
-                startActivity(intent);
-            }
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        registerReceiver(mReceiver, mIntentFilter);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        unregisterReceiver(mReceiver);
-    }
+//    @Override
+//    protected void onResume() {
+//        super.onResume();
+//        registerReceiver(mReceiver, mIntentFilter);
+//    }
+//
+//    @Override
+//    protected void onPause() {
+//        super.onPause();
+//        unregisterReceiver(mReceiver);
+//    }
 }
