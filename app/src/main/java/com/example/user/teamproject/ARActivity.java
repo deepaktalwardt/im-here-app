@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Rect;
+import android.hardware.GeomagneticField;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -74,6 +75,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 
     private Location myLocation = new Location("me");
     private Location target = new Location("target");
+
     public void OnRequestPermissionsResultCallback(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResult) {
         switch (requestCode) {
             case REQUEST_CAMERA_PERMISSION_ID:
@@ -190,7 +192,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                 myLat = location.getLatitude();
                 myLon = location.getLongitude();
                 myLocation = location;
-                distance.setText(calculateDistance(myLat, myLon, 37.422061, -121.872090));
+                distance.setText(calculateDistance(myLat, myLon, 37.354514, -121.938059));
             }
 
             @Override
@@ -215,8 +217,8 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
 
-        target.setLatitude(37.422061);
-        target.setLongitude(-121.872090);
+        target.setLatitude(37.354514);
+        target.setLongitude(-121.938059);
     }
 
     private void isLocationEnabled() {
@@ -277,19 +279,30 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         float degree = Math.round(event.values[0]);
         if (myLocation != null) {
             float bearing = myLocation.bearingTo(target);
-            degree = (bearing - degree) * -1;
-            degree = normalizeDegree(degree);
+
+            if (bearing < 0) {
+                bearing += 360;
+            }
+            degree = bearing - degree;
+            if (degree < 0) {
+                degree += 360;
+            }
+            //degree = (bearing - degree) * -1;
+            //degree = normalizeDegree(degree);
+
+//            degree = bearing - (bearing + degree);
+//            Math.round(-degree / 360 + 180);
         }
 
 
-        if (degree <= 50 || degree >= 650) {
+        if (degree <= 20 || degree >= 340) {
             pin.setVisibility(View.VISIBLE);
-            pin.setY(750);
-            if (degree > 0 && degree < 50) {
-                pin.setX((float)-9.7*(degree-50));
+            pin.setY(400);
+            if (degree > 0 && degree < 20) {
+                pin.setX((float)(103*degree+1940)/4);
             }
-            if (degree >650 && degree < 715) {
-                pin.setX((float)(149995-167*degree)/46);
+            if (degree >=340 && degree <= 360) {
+                pin.setX((float)(117*degree-40180)/4);
             }
             //pin.setX(degree);
 //            TranslateAnimation translateAnimation = new TranslateAnimation(curDegree, -degree, Animation.RELATIVE_TO_PARENT, Animation.RELATIVE_TO_PARENT);
@@ -336,7 +349,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         rotateAnimation.setFillAfter(true);
         arrow.startAnimation(rotateAnimation);
 
-        curDegree = -degree;
+        curDegree = degree;
     }
 
     private float normalizeDegree(float value) {
