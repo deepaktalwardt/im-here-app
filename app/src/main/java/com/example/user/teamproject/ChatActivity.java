@@ -1,52 +1,36 @@
 package com.example.user.teamproject;
 
-import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pConfig;
-import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
-import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.StrictMode;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.Adapter;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.DataSource;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.DatabaseConfiguration;
-
-import com.couchbase.lite.Document;
-import com.couchbase.lite.MutableDocument;
 import com.couchbase.lite.Expression;
+import com.couchbase.lite.MutableDocument;
 import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryBuilder;
-import com.couchbase.lite.ResultSet;
-import com.couchbase.lite.Result;
 import com.couchbase.lite.SelectResult;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import org.ocpsoft.prettytime.PrettyTime;
-
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,14 +39,10 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.channels.AsynchronousChannel;
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
-import java.util.Date;
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -215,7 +195,7 @@ public class ChatActivity extends AppCompatActivity {
                     // Get the database (and create it if it doesn’t exist).
                     DatabaseConfiguration DBconfig = new DatabaseConfiguration(getApplicationContext());
                     try {
-                        friendDatabase = new Database("friendList", DBconfig);
+                        userListDatabase = new Database("friendList", DBconfig);
                     } catch (CouchbaseLiteException e) {
                         e.printStackTrace();
                     }
@@ -244,15 +224,15 @@ public class ChatActivity extends AppCompatActivity {
                     //friendDoc.setBlob("friendBlob", friendBlob);
 
                     try {
-                        friendDatabase.save(friendDoc);
+                        userListDatabase.save(friendDoc);
                     } catch (CouchbaseLiteException e) {
                         e.printStackTrace();
                     }
 
                     //create if chat doesn't exist, otherwise open it and reload old message
                     try {
-                        chatDatabase = new Database(friendUUID, DBconfig);
-                        loadMessage(chatDatabase);
+                        chatRoomDatabase = new Database(friendUUID, DBconfig);
+                        loadMessage(chatRoomDatabase);
                     } catch (CouchbaseLiteException e) {
                         e.printStackTrace();
                     }
@@ -288,30 +268,30 @@ public class ChatActivity extends AppCompatActivity {
                     // TODO: add to database
                     try {
                         DatabaseConfiguration DBconfig = new DatabaseConfiguration(getApplicationContext());
-                        chatDatabase = new Database(friendUUID, DBconfig);
+                        chatRoomDatabase = new Database(friendUUID, DBconfig);
                         MutableDocument message = new MutableDocument();
-                        int count = (int) chatDatabase.getCount();
+                        int count = (int) chatRoomDatabase.getCount();
                         //count can be last index
                         //such as when count is 0, means there is no previous message
                         //and the current message will be at index 0 to new chat db.
                         //and so on.
                         message.setInt("index", count);
                         message.setValue("model", model);
-                        chatDatabase.save(message);
+                        chatRoomDatabase.save(message);
 
                         //get time
                         try {
-                            friendDatabase = new Database("friendList", DBconfig);
+                            userListDatabase = new Database("friendList", DBconfig);
                             Query query = QueryBuilder.select(SelectResult.property("docID"))
-                                    .from(DataSource.database(friendDatabase))
+                                    .from(DataSource.database(userListDatabase))
                                     .where(Expression.property("friendUUID").equalTo(Expression.string(friendUUID)));
-                            ResultSet rs = query.execute();
+                            com.couchbase.lite.ResultSet rs = query.execute();
                             docID = rs.allResults().get(0).getString("docID");
-                            MutableDocument friendDoc = friendDatabase.getDocument(docID).toMutable();
+                            MutableDocument friendDoc = userListDatabase.getDocument(docID).toMutable();
                             PrettyTime prettyTime = new PrettyTime(Locale.getDefault());
                             String ago = prettyTime.format(new Date(String.valueOf(Calendar.getInstance().getTime())));
                             friendDoc.setString("time", ago);
-                            friendDatabase.save(friendDoc);
+                            userListDatabase.save(friendDoc);
                         } catch (CouchbaseLiteException e) {
                             e.printStackTrace();
                         }
@@ -475,14 +455,14 @@ public class ChatActivity extends AppCompatActivity {
         Query query = QueryBuilder.select(SelectResult.property("index"))
                 .from(DataSource.database(friendChat))
                 .where(Expression.property("index"));
-        ResultSet rs = query.execute();
+        com.couchbase.lite.ResultSet rs = query.execute();
         int size = rs.allResults().size();
 
         //get the data and append to a list
         ArrayList<String> listData = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             query = QueryBuilder.select(SelectResult.property("model"))
-                    .from(DataSource.database(chatDatabase))
+                    .from(DataSource.database(chatRoomDatabase))
                     .where(Expression.property("index").equalTo(Expression.property("index").value(i)));
             rs = query.execute();
             ChatModel model = (ChatModel)rs.allResults().get(0).getValue("model");
