@@ -61,13 +61,13 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     FloatingActionButton fab;
 //    FloatingActionButton fab2;
 //
-//    WifiP2pManager mManager;
-//    WifiP2pManager.Channel mChannel;
+    WifiP2pManager mManager;
+    WifiP2pManager.Channel mChannel;
 //    WiFiDirectBroadcastReceiver mReceiver;
 //    IntentFilter mIntentFilter;
 //
-//    String myUUID;
-//    String myUsername;
+    String myUUID;
+    String myUsername;
 
 
     @Override
@@ -104,8 +104,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
-//        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
-//        mChannel = mManager.initialize(this, getMainLooper(), null);
+        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
+        mChannel = mManager.initialize(this, getMainLooper(), null);
 //        mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);
 //
 //        mIntentFilter = new IntentFilter();
@@ -213,6 +213,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         } catch (CouchbaseLiteException e) {
             e.printStackTrace();
         }
+
+        startRegistration();
+
     }
 
     @Override
@@ -339,4 +342,33 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 //        super.onPause();
 //        unregisterReceiver(mReceiver);
 //    }
+
+    /**
+     * Registers a local service and then initiates a service discovery
+     */
+    private void startRegistration() {
+        Intent intent = getIntent();
+        myUUID = intent.getStringExtra("UUID");
+        myUsername = intent.getStringExtra("Username");
+
+        final Map<String, String> record = new HashMap<String, String>();
+        record.put("available", "visible");
+        record.put("Name", "imhere!!!");
+        record.put("myUUID", myUUID);
+        record.put("myUsername", myUsername);
+
+        WifiP2pDnsSdServiceInfo service = WifiP2pDnsSdServiceInfo.newInstance(
+                SERVICE_INSTANCE, SERVICE_REG_TYPE, record);
+
+        mManager.addLocalService(mChannel, service, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                Toast.makeText(getApplicationContext(),"Successfully added " + myUUID, Toast.LENGTH_SHORT).show();
+            }
+            @Override
+            public void onFailure(int error) {
+                Toast.makeText(getApplicationContext(),"Failed to add service", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 }
