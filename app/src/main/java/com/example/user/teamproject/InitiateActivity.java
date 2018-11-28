@@ -124,7 +124,7 @@ public class InitiateActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        startRegistration();
+//        startRegistration();
 
     }
 

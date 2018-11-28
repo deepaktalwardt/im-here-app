@@ -44,7 +44,6 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
     // UI elements
     ListView listView;
     TextView searchStatus;
-    ProgressDialog progressDialog;
 
     // TODO: Add a re-search button and link it to initiating search again
 
@@ -72,6 +71,11 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
     final Map<String, String> deviceToUUID = new HashMap<String, String>();
     final Map<String, String> deviceToUsername = new HashMap<String, String>();
     WiFiP2pService selectedService;
+
+    // Friend Params
+    String friendUUID;
+    String friendUsername;
+    String friendDeviceAddress;
 
 
     @Override
@@ -155,6 +159,12 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
                 WiFiP2pService service = serviceList.get(position);
+                selectedService = service;
+//                Intent intent = new Intent(getApplicationContext(), ChatterActivity.class);
+//                intent.putExtra("service", selectedService);
+//                intent.putExtra("deviceType", "host");
+//                startActivity(intent);
+//                finish();
                 connectP2p(service);
             }
         });
@@ -364,7 +374,7 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
 
     @Override
     public void onConnectionInfoAvailable(WifiP2pInfo p2pInfo) {
-        Thread handler = null;
+//        Thread handler = null;
         /*
          * The group owner accepts connections using a server socket and then spawns a
          * client socket for every client. This is handled by {@code
@@ -373,40 +383,38 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
         if (p2pInfo.groupFormed) {
             if (p2pInfo.isGroupOwner) {
                 Log.d("Host", "Connected as group owner");
-                //            try {
-                //                handler = new GroupOwnerSocketHandler(
-                //                        ((MessageTarget) this).getHandler());
-                //                handler.start();
-                //            } catch (IOException e) {
-                //                Log.d(TAG,
-                //                        "Failed to create a server thread - " + e.getMessage());
-                //                return;
-                //            }
-                Intent intent = new Intent(getApplicationContext(), ChatterActivity.class);
-                intent.putExtra("service", selectedService);
-                intent.putExtra("deviceType", "host");
-                startActivity(intent);
-                finish();
+//                intent.putExtra("friendUUID", selectedService.getUuid());
+//                intent.putExtra("friendUsername", selectedService.getUsername());
+//                startActivity(intent);
+//                finish();
             } else {
-                //            Log.d(TAG, "Connected as peer");
-                //            handler = new ClientSocketHandler(
-                //                    ((MessageTarget) this).getHandler(),
-                //                    p2pInfo.groupOwnerAddress);
-                //            handler.start();
-                //        }
-                //        chatFragment = new WiFiChatFragment();
-                //        getFragmentManager().beginTransaction()
-                //                .replace(R.id.container_root, chatFragment).commit();
-                //        statusTxtView.setVisibility(View.GONE);
-                Log.d("P2PInfoClient", p2pInfo.toString());
+//                Log.d("P2PInfoClient", p2pInfo.toString());
                 Intent intent = new Intent(getApplicationContext(), ChatterActivity.class);
                 WiFiP2pService service = new WiFiP2pService();
-//                service.setUuid(deviceToUUID.get(p2pInfo.groupOwnerAddress));
-//                service.setUsername(deviceToUsername.get(p2pInfo.groupOwnerAddress));
+////                service.setUuid(deviceToUUID.get(p2pInfo.groupOwnerAddress));
+////                service.setUsername(deviceToUsername.get(p2pInfo.groupOwnerAddress));
                 service.setGroupOwnerAddress(p2pInfo.groupOwnerAddress);
-                service.setDeviceType("client");
+//                service.setDeviceType("client");
                 intent.putExtra("service", service);
                 intent.putExtra("deviceType", "client");
+
+//                mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener() {
+//                    @Override
+//                    public void onGroupInfoAvailable(WifiP2pGroup group) {
+//                        friendDeviceAddress = group.getOwner().deviceAddress;
+//                        Log.d("GroupOwnerAddress", friendDeviceAddress);
+//
+//                        friendUUID = deviceToUUID.get(friendDeviceAddress);
+//                        friendUsername = deviceToUsername.get(friendDeviceAddress);
+//
+//                        Log.d("friendUUID", friendUUID);
+//                        Log.d("friendUsername", friendUsername);
+//                    }
+//                });
+//
+//                intent.putExtra("friendUUID", friendUUID);
+//                intent.putExtra("friendUsername", friendUsername);
+//                intent.putExtra("groupOwnerAddress", p2pInfo.groupOwnerAddress.toString());
                 startActivity(intent);
                 finish();
             }

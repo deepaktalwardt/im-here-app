@@ -5,7 +5,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
+import android.net.wifi.WpsInfo;
+import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pGroup;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pServiceRequest;
 import android.os.Handler;
@@ -43,7 +46,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 
-public class ChatterActivity extends AppCompatActivity {
+public class ChatterActivity extends AppCompatActivity implements WifiP2pManager.ConnectionInfoListener {
 
     // Constants
     final String tag = "ChatterActivity";
@@ -68,7 +71,7 @@ public class ChatterActivity extends AppCompatActivity {
     InetAddress groupOwnerAddress;
 
     // Friend connection params
-    String friendUuid;
+    String friendUUID;
     String friendUsername;
 
     // My identity params
@@ -87,14 +90,26 @@ public class ChatterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Inflate the view as late as possible
+        setContentView(R.layout.activity_chat);
 
         populateSelfParams();
         wireUiToVars();
         setupObjects();
 
         // TODO: Change how Username and UUID is set on action bar
-//        Intent intent = getIntent();
-//        service = (WiFiP2pService) intent.getSerializableExtra("service");
+        Intent intent = getIntent();
+        service = (WiFiP2pService) intent.getSerializableExtra("service");
+        deviceType = intent.getStringExtra("deviceType");
+
+        if (deviceType.equals("groupOwner")) {
+            getSupportActionBar().setTitle(service.getUsername() + " (" + service.getUuid() + ")");
+            initiateConnection("groupOwner", service);
+
+        } else if (deviceType.equals("client")) {
+            groupOwnerAddress = service.getGroupOwnerAddress();
+            initiateConnection("client", service);
+        }
 //        if (service.getGroupOwnerAddress() == null) {
 //            try {
 //                friendUsername = service.getUsername();
@@ -114,28 +129,23 @@ public class ChatterActivity extends AppCompatActivity {
 //            getSupportActionBar().setTitle("New Device (" + service.getUuid() + ")");
 //        }
 
-        mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener() {
-            @Override
-            public void onGroupInfoAvailable(WifiP2pGroup group) {
-                if (group.isGroupOwner()) {
-                    deviceType = "host";
-                } else {
-//                    groupOwnerAddress = group.getOwner().deviceAddress;
-                }
-            }
-        });
 
-        Intent intent = getIntent();
-        deviceType = intent.getStringExtra("deviceType");
+//        Intent intent = getIntent();
 
-        if (deviceType.equals("host")) {
 
-        } else if (deviceType.equals("client")) {
-
-        }
-
-        // Inflate the view as late as possible
-        setContentView(R.layout.activity_chat);
+//        Toast toast = Toast.makeText(getApplicationContext(), deviceType + " " + friendUsername + " " + friendUUID, Toast.LENGTH_SHORT);
+//        toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+//        toast.show();
+//        try {
+//            getSupportActionBar().setTitle(friendUsername + " (" + friendUUID + ")");
+//        } catch (NullPointerException e) {
+//            getSupportActionBar().setTitle("New Device");
+//        }
+//        if (deviceType.equals("host")) {
+//
+//        } else if (deviceType.equals("client")) {
+//
+//        }
 
         setSendButtonOnClickListener();
     }
@@ -209,15 +219,44 @@ public class ChatterActivity extends AppCompatActivity {
 //        }
 //    }
 
-    private void initiateConnection(String connectionType, InetAddress groupOwnerAddress) {
+    private void initiateConnection(String connectionType, WiFiP2pService service) {
         if (connectionType.equals("host")) {
             serverClass = new ServerClass();
             serverClass.start();
-            Toast toast = Toast.makeText(getApplicationContext(), "Host", Toast.LENGTH_SHORT);
-            toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
-            toast.show();
+//
+//            mManager.createGroup(mChannel, new WifiP2pManager.ActionListener() {
+//                @Override
+//                public void onSuccess() {
+//                    Log.d("GroupCreated", "group created");
+//                }
+//
+//                @Override
+//                public void onFailure(int reason) {
+//                    Log.d("GroupNotCreated", "groupNotCreated");
+//                }
+//            });
 
-            // TODO: Send username, uuid to client
+//            WifiP2pConfig config = new WifiP2pConfig();
+//            config.deviceAddress = service.getDeviceAddress();
+//            config.wps.setup = WpsInfo.PBC;
+//
+//            mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
+//                        @Override
+//                        public void onSuccess() {
+//                            Toast toast = Toast.makeText(getApplicationContext(), "Connection Successful as Host", Toast.LENGTH_SHORT);
+//                            toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+//                            toast.show();
+//                        }
+//
+//                        @Override
+//                        public void onFailure(int reason) {
+//                            Toast toast = Toast.makeText(getApplicationContext(), "No Connection Successful as Host", Toast.LENGTH_SHORT);
+//                            toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+//                            toast.show();
+//                        }
+//            });
+
+                    // TODO: Send username, uuid to client
             try {
                 String metadata = createJSONMeta(selfUUID, selfUsername);
                 sendReceive.write(metadata.getBytes());
@@ -233,12 +272,12 @@ public class ChatterActivity extends AppCompatActivity {
             toast.show();
 
             // TODO: Send username, uuid to host
-            try {
-                String metadata = createJSONMeta(selfUUID, selfUsername);
-                sendReceive.write(metadata.getBytes());
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                String metadata = createJSONMeta(selfUUID, selfUsername);
+//                sendReceive.write(metadata.getBytes());
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
         }
     }
 
@@ -417,5 +456,24 @@ public class ChatterActivity extends AppCompatActivity {
             ex.printStackTrace();
         }
         return null;
+    }
+
+    @Override
+    public void onConnectionInfoAvailable(WifiP2pInfo info) {
+        final InetAddress goAddress = info.groupOwnerAddress;
+        if (info.groupFormed && info.isGroupOwner) {
+            serverClass = new ServerClass();
+            serverClass.start();
+            Toast.makeText(getApplicationContext(), "Host thread started", Toast.LENGTH_SHORT).show();
+            // TODO: Send data about myself to the client
+
+
+        } else if (info.groupFormed && !info.isGroupOwner) {
+            Log.d("Chat Activity", "goAddress populated");
+            groupOwnerAddress = goAddress;
+            clientClass = new ClientClass(goAddress);
+            clientClass.start();
+            Toast.makeText(getApplicationContext(), "Client thread started", Toast.LENGTH_SHORT).show();
+        }
     }
 }
