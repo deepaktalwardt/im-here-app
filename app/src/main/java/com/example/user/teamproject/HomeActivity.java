@@ -2,6 +2,7 @@ package com.example.user.teamproject;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -61,10 +62,12 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
     WifiP2pManager mManager;
     WifiP2pManager.Channel mChannel;
-    WiFiDirectBroadcastReceiver wiFiDirectBroadcastReceiver;
+    WiFiDirectBroadcastReceiver mReceiver;
+    IntentFilter mIntentFilter;
 
     String myUUID;
     String myUsername;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,8 +103,17 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
+        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
+        mChannel = mManager.initialize(this, getMainLooper(), null);
+        mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);
+
+        mIntentFilter = new IntentFilter();
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+
         fab = findViewById(R.id.fab);
-        fab2 = findViewById(R.id.fab2);
+
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -112,6 +124,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
+        fab2 = findViewById(R.id.fab2);
         fab2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -253,10 +266,6 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public void createWifiP2pGroup() {
-        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
-        mChannel = mManager.initialize(this, getMainLooper(), null);
-        wiFiDirectBroadcastReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);
-
         startRegistration();
 
         mManager.createGroup(mChannel, new WifiP2pManager.ActionListener() {
@@ -307,14 +316,26 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onConnectionInfoAvailable(WifiP2pInfo info) {
-//        if (info.groupFormed) {
-//            if (info.isGroupOwner) {
-        Intent intent = new Intent(getApplicationContext(), ChatterActivity.class);
-        WiFiP2pService service = new WiFiP2pService();
-        intent.putExtra("service", service);
-        intent.putExtra("deviceType", "host");
-        startActivity(intent);
-//            }
-//        }
+        if (info.groupFormed) {
+            if (info.isGroupOwner) {
+                Intent intent = new Intent(getApplicationContext(), ChatterActivity.class);
+                WiFiP2pService service = new WiFiP2pService();
+                intent.putExtra("service", service);
+                intent.putExtra("deviceType", "groupOwner");
+                startActivity(intent);
+            }
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(mReceiver, mIntentFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(mReceiver);
     }
 }

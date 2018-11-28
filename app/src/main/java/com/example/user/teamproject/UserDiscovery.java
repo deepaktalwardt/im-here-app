@@ -159,7 +159,7 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
                 WiFiP2pService service = serviceList.get(position);
-                selectedService = service;
+//                selectedService = service;
 //                Intent intent = new Intent(getApplicationContext(), ChatterActivity.class);
 //                intent.putExtra("service", selectedService);
 //                intent.putExtra("deviceType", "host");
@@ -346,6 +346,7 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
         WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = service.getDeviceAddress();
         config.wps.setup = WpsInfo.PBC;
+        config.groupOwnerIntent = 0;
         if (serviceRequest != null)
             mManager.removeServiceRequest(mChannel, serviceRequest, new WifiP2pManager.ActionListener() {
                         @Override
