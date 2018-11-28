@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Rect;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -24,8 +25,10 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
+import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -52,6 +55,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     SurfaceView cameraView;
     TextView direction;
     ImageView arrow;
+    ImageView pin;
     TextView distance;
     TextView targetDirection;
     CameraSource cameraSource;
@@ -96,6 +100,8 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         cameraView = (SurfaceView) findViewById(R.id.surface_view);
         direction = (TextView) findViewById(R.id.direction);
         arrow = findViewById(R.id.arrow);
+        pin = findViewById(R.id.pinImage);
+        pin.setVisibility(View.GONE);
         distance = findViewById(R.id.distance);
         targetDirection = findViewById(R.id.targetDirection);
         TextRecognizer textRecognizer = new TextRecognizer.Builder(getApplicationContext()).build();
@@ -274,6 +280,33 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
             degree = (bearing - degree) * -1;
             degree = normalizeDegree(degree);
         }
+
+
+        if (degree <= 50 || degree >= 650) {
+            pin.setVisibility(View.VISIBLE);
+            pin.setY(750);
+            if (degree > 0 && degree < 50) {
+                pin.setX((float)-9.7*(degree-50));
+            }
+            if (degree >650 && degree < 715) {
+                pin.setX((float)(149995-167*degree)/46);
+            }
+            //pin.setX(degree);
+//            TranslateAnimation translateAnimation = new TranslateAnimation(curDegree, -degree, Animation.RELATIVE_TO_PARENT, Animation.RELATIVE_TO_PARENT);
+//            translateAnimation.setDuration(210);
+//            translateAnimation.setFillAfter(true);
+//
+//
+//            Rect myViewRect = new Rect();
+//            pin.getGlobalVisibleRect(myViewRect);
+//            float x = myViewRect.left;
+//            float y = myViewRect.right;
+//            Log.d("rect", "x is " + Float.toString(x));
+//            Log.d("rect", "y is " + Float.toString(y));
+        } else {
+            pin.setVisibility(View.GONE);
+        }
+
 //        String direcitonText = "";
 //        if (degree <= 20 || degree > 335) {
 //            direcitonText = "N";
@@ -302,6 +335,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         rotateAnimation.setDuration(1000);
         rotateAnimation.setFillAfter(true);
         arrow.startAnimation(rotateAnimation);
+
         curDegree = -degree;
     }
 
