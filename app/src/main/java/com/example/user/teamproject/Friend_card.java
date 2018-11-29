@@ -6,13 +6,11 @@ public class Friend_card {
     private String mUsername;
     private String mUUID;
     private String mTime;
-    private int mConnection;
 
-    public Friend_card(String username, String UUID, String time, int connection) {
+    public Friend_card(String username, String UUID, String time) {
         mUsername = username;
         mUUID = UUID;
-        mTime = time;
-        mConnection = connection;
+        mTime = time;;
     }
 
     public String getUsername(){
@@ -26,9 +24,4 @@ public class Friend_card {
     public String getTime(){
         return mTime;
     }
-
-    public int getConnection(){
-        return mConnection;
-    }
-
 }
