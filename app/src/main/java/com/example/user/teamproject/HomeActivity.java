@@ -6,10 +6,16 @@ import android.content.IntentFilter;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+
+import android.hardware.camera2.CameraDevice;
+import android.hardware.camera2.CameraManager;
+
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
+
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
@@ -70,6 +76,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     String myUsername;
 
 
+    private CameraDevice cameraDevice;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -120,8 +127,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             public void onClick(View view) {
 //                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
 //                        .setAction("Action", null).show();
+
                 Intent intent = new Intent(getApplicationContext(), UserDiscovery.class);
                 startActivity(intent);
+
             }
         });
 
@@ -268,6 +277,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
 
 //    public void createWifiP2pGroup() {
 //        startRegistration();

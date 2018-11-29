@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/activity_ar">
+
+    <SurfaceView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/surface_view"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/direction"
+        android:textSize="30sp"
+        android:textColor="@color/common_google_signin_btn_text_dark"
+        android:layout_alignParentBottom="true"
+        />
+
+    <ImageView
+        android:id="@+id/arrow"
+        android:layout_width="100dp"
+        android:layout_height="120dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerInParent="true"
+        android:src="@drawable/arrow3"/>
+    <ImageView
+        android:id="@+id/pinImage"
+        android:layout_width="80dp"
+        android:layout_height="120dp"
+        android:layout_centerInParent="true"
+        android:visibility="gone"
+        android:src="@drawable/pin"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/distance"
+        android:text="Distance"
+        android:textSize="30sp"
+        android:textColor="@color/common_google_signin_btn_text_dark"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/targetDirection"
+        android:textSize="30sp"
+        android:textColor="@color/common_google_signin_btn_text_dark"
+        android:layout_alignParentTop="true"/>
+
+</RelativeLayout>
