@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:paddingBottom="4dp"
+    android:paddingLeft="4dp"
+    android:paddingRight="4dp"
+    android:paddingTop="4dp"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    tools:context=".ChatterActivity">
+
+    <android.support.design.widget.FloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:src="@drawable/ic_send_1"
+        android:id="@+id/send_fab"
+        android:tint="@android:color/white"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginRight="8dp"
+        android:layout_marginBottom="8dp"/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:src="@drawable/ar_mode_icon"
+        android:id="@+id/ar_fab"
+        android:tint="@android:color/black"
+        android:backgroundTint="@color/colorPrimaryDark"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="6dp"
+        android:layout_marginLeft="6dp"
+        android:layout_toLeftOf="@+id/send_fab"
+        android:layout_marginBottom="8dp"
+        />
+
+    <ListView
+        android:layout_above="@+id/entryBox"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:id="@+id/messageList"
+        android:windowSoftInputMode="stateVisible|adjustResize"
+        android:layout_marginBottom="4dp"
+        android:stackFromBottom="true"
+        android:transcriptMode="alwaysScroll"
+        android:dividerHeight="0dp"
+        android:divider="@android:color/transparent">
+    </ListView>
+    
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minHeight="20dp"
+        android:maxHeight="100dp"
+        android:layout_toLeftOf="@+id/ar_fab"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="12dp"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:id="@+id/entryBox"
+        android:textSize="18sp"
+        android:padding="10dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:transcriptMode="alwaysScroll"
+        android:stackFromBottom="true"
+        android:background="@drawable/rounded_corner_edittext"
+        android:hint="  Enter your message..."
+        android:outlineAmbientShadowColor="@android:color/black"
+        />
+
+</RelativeLayout>
