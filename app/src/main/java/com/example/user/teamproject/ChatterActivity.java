@@ -1,9 +1,14 @@
 package com.example.user.teamproject;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
@@ -14,6 +19,7 @@ import android.net.wifi.p2p.nsd.WifiP2pServiceRequest;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -64,7 +70,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
     WiFiDirectBroadcastReceiver mReceiver;
     IntentFilter mIntentFilter;
     SendReceive sendReceive;
-    static final int MESSAGE_READ =  1;
+    static final int MESSAGE_READ = 1;
     ServerClass serverClass;
     ClientClass clientClass;
     String deviceType;
@@ -94,6 +100,12 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
     String friendLat;
     Boolean metaSent = false;
 
+    // My Location
+    LocationManager locationManager;
+    Double myLat = 37.335890;
+    Double myLon = -121.882578;
+    Location myLocation;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,6 +116,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         populateSelfParams();
         wireUiToVars();
         setupObjects();
+        setupLocation();
 
         // TODO: Change how Username and UUID is set on action bar
         Intent intent = getIntent();
@@ -119,7 +132,6 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         } else if (deviceType.equals("recvConnection")) {
             groupOwnerAddress = service.getGroupOwnerAddress();
             initiateConnection("client", service);
-
         }
 
 //        if (service.getGroupOwnerAddress() == null) {
@@ -204,12 +216,8 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
 
                 String textToSend = entryBox.getText().toString();
 
-                // TODO: Get my current location
-                String myLat = "37.12345";
-                String myLon = "-122.12345";
-
                 try {
-                    String packetToSend = createJSONChat(textToSend, myLat, myLon);
+                    String packetToSend = createJSONChat(textToSend, myLat.toString(), myLon.toString());
                     sendReceive.write(packetToSend.getBytes());
 
                     ChatModel model = new ChatModel(textToSend, true);
@@ -223,6 +231,44 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
                 }
             }
         });
+    }
+
+    public void setupLocation() {
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        LocationListener locationListenerGPS = new LocationListener() {
+            @Override
+            public void onLocationChanged(android.location.Location location) {
+                myLat = location.getLatitude();
+                myLon = location.getLongitude();
+                myLocation = location;
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+
+            }
+        };
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, locationListenerGPS);
     }
 
 //    private void initiateConnection(WiFiP2pService service, String connectionType) {
