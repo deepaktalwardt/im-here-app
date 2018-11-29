@@ -56,6 +56,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     SurfaceView cameraView;
     TextView direction;
     ImageView arrow;
+    ImageView compass;
     ImageView pin;
     TextView distance;
     TextView targetDirection;
@@ -68,6 +69,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     Context context;
 
     private float curDegree = 0f;
+    private float curDegreeForN = 0f;
     private double degree;
     private double myLat;
     private double myLon;
@@ -108,9 +110,13 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         direction = (TextView) findViewById(R.id.direction);
         arrow = findViewById(R.id.arrow);
         pin = findViewById(R.id.pinImage);
+        compass = findViewById(R.id.compass);
         pin.setVisibility(View.GONE);
         distance = findViewById(R.id.distance);
         targetDirection = findViewById(R.id.targetDirection);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         TextRecognizer textRecognizer = new TextRecognizer.Builder(getApplicationContext()).build();
         if (!textRecognizer.isOperational()) {
@@ -118,7 +124,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         } else {
             cameraSource = new CameraSource.Builder(getApplicationContext(), textRecognizer)
                     .setFacing(CameraSource.CAMERA_FACING_BACK)
-                    .setRequestedPreviewSize(1280, 1024)
+                    .setRequestedPreviewSize(1920, 1080)
                     .setRequestedFps(2.0f)
                     .setAutoFocusEnabled(true).
                             build();
@@ -181,6 +187,8 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         Intent intent = getIntent();
         String targetLat = intent.getStringExtra("targetLat");
         String targetLon = intent.getStringExtra("targetLon");
+        String username = intent.getStringExtra("username");
+        getSupportActionBar().setTitle(username + "'s location");
 
         doubleTargetLat = Double.valueOf(targetLat);
         doubleTargetLon = Double.valueOf(targetLon);
@@ -285,6 +293,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 
         // Get the angle between my device and north
         float degree = Math.round(event.values[0]);
+        float degreeForN = degree;
 
         // Calculate the angle between my device to the target device
         if (myLocation != null) {
@@ -313,7 +322,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         // indicate the target device location
         if (degree <= 20 || degree >= 340) {
             pin.setVisibility(View.VISIBLE);
-            pin.setY(350);
+            pin.setY(400);
             if (degree > 0 && degree < 20) {
                 pin.setX((float)(103*degree+1940)/4);
             }
@@ -368,8 +377,15 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         rotateAnimation.setFillAfter(true);
         arrow.startAnimation(rotateAnimation);
 
+        RotateAnimation rotateAnimationCompass = new RotateAnimation(curDegreeForN, (float) -degreeForN,
+                Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+        rotateAnimationCompass.setDuration(1000);
+        rotateAnimationCompass.setFillAfter(true);
+        compass.startAnimation(rotateAnimationCompass);
+
         // Update the angle in degree
         curDegree = degree;
+        curDegreeForN = -degreeForN;
     }
 
 //    private float normalizeDegree(float value) {
@@ -417,4 +433,10 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 
     @Override
     public void onPointerCaptureChanged(boolean hasCapture) {}
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
+    }
 }

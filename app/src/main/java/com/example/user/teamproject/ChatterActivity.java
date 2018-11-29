@@ -18,6 +18,8 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pServiceRequest;
 import android.os.Handler;
 import android.os.Message;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -97,6 +99,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
     // Chat Objects
     ArrayList msgList = new ArrayList<ChatModel>();
     CustomAdapter adapter;
+    Vibrator v;
 
     // Connection type
     String connectionType;
@@ -121,6 +124,9 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         wireUiToVars();
         setupObjects();
         setupLocation();
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         // TODO: Change how Username and UUID is set on action bar
         Intent intent = getIntent();
@@ -160,7 +166,6 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
 
 //        Intent intent = getIntent();
 
-
 //        Toast toast = Toast.makeText(getApplicationContext(), deviceType + " " + friendUsername + " " + friendUUID, Toast.LENGTH_SHORT);
 //        toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
 //        toast.show();
@@ -198,6 +203,8 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+
+        v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
     }
 
     public void setSendButtonOnClickListener() {
@@ -216,6 +223,9 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
                     metaSent = true;
                 } catch (JSONException e) {
                     e.printStackTrace();
+                } catch (NullPointerException e) {
+                    e.printStackTrace();
+                    Toast.makeText(getApplicationContext(), "Something went wrong, please try again or restart the app.", Toast.LENGTH_LONG).show();
                 }
 
 
@@ -224,6 +234,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
                 try {
                     String packetToSend = createJSONChat(textToSend, myLat.toString(), myLon.toString());
                     sendReceive.write(packetToSend.getBytes());
+                    ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE));
 
 
                     ChatModel model = new ChatModel(textToSend, true);
@@ -268,6 +279,8 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
 
                 } catch (JSONException e) {
                     e.printStackTrace();
+                } catch (NullPointerException e) {
+                    Toast.makeText(getApplicationContext(), "Something went wrong, please try again or restart the app.", Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -281,6 +294,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
                     Intent intent = new Intent(getApplicationContext(), ARActivity.class);
                     intent.putExtra("targetLat", friendLat);
                     intent.putExtra("targetLon", friendLon);
+                    intent.putExtra("username", friendUsername);
                     startActivity(intent);
                 } else {
                     Toast.makeText(getApplicationContext(), "Location from friend not yet received. No GPS signal.", Toast.LENGTH_LONG).show();
@@ -565,7 +579,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(mReceiver);
+//        unregisterReceiver(mReceiver);
     }
 
     Handler handler = new Handler(new Handler.Callback() {
@@ -576,21 +590,24 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         public boolean handleMessage(Message msg) {
             switch (msg.what) {
                 case MESSAGE_READ:
-                    byte[] readBuff = (byte[]) msg.obj;
-                    String tempMsg = new String(readBuff, 0, msg.arg1);
-                    Toast.makeText(getApplicationContext(), tempMsg, Toast.LENGTH_LONG).show();
-//                    ChatModel model = new ChatModel(tempMsg, false);
-//                    adapter = new CustomAdapter(getApplicationContext(), msgList);
-                    // TODO: Parse JSON Message and check if it is chat message,
-                    // meta message or location message
                     try {
-                        JSONObject parsedMessage = new JSONObject(tempMsg);
-                        if (parsedMessage.get("type").equals("meta")) {
-                            friendUsername = parsedMessage.getString("username");
-                            friendUUID = parsedMessage.getString("UUID");
-                            getSupportActionBar().setTitle(friendUsername);
+                        byte[] readBuff = (byte[]) msg.obj;
+                        String tempMsg = new String(readBuff, 0, msg.arg1);
+                        Toast.makeText(getApplicationContext(), tempMsg, Toast.LENGTH_LONG).show();
+                        //                    ChatModel model = new ChatModel(tempMsg, false);
+                        //                    adapter = new CustomAdapter(getApplicationContext(), msgList);
+                        // TODO: Parse JSON Message and check if it is chat message,
+                        // meta message or location message
 
-                            //open friendList db to store friend
+
+                        try {
+                            JSONObject parsedMessage = new JSONObject(tempMsg);
+                            if (parsedMessage.get("type").equals("meta")) {
+                                friendUsername = parsedMessage.getString("username");
+                                friendUUID = parsedMessage.getString("UUID");
+                                getSupportActionBar().setTitle(friendUsername);
+                              
+                              //open friendList db to store friend
                             // Get the database (and create it if it doesn’t exist).
                             try {
                                 userListDatabase = new Database("friendList", DBconfig);
@@ -614,18 +631,20 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
                                 e.printStackTrace();
                             }
 
-                        } else if (parsedMessage.get("type").equals("chat")) {
-                            String message = parsedMessage.getString("message");
-                            friendLon = parsedMessage.getString("lon");
-                            friendLat = parsedMessage.getString("lat");
+                          } else if (parsedMessage.get("type").equals("chat")) {
+                                String message = parsedMessage.getString("message");
+                                friendLon = parsedMessage.getString("lon");
+                                friendLat = parsedMessage.getString("lat");
+                                // Get instance of Vibrator from current Context
+                                ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE));
 
-                            ChatModel model = new ChatModel(message, false);
-                            adapter = new CustomAdapter(getApplicationContext(), msgList);
-                            messageList.setAdapter(adapter);
-                            msgList.add(model);
-                            adapter.notifyDataSetChanged();
-
-                            //create new or open exist chat db by using UUID
+                                ChatModel model = new ChatModel(message, false);
+                                adapter = new CustomAdapter(getApplicationContext(), msgList);
+                                messageList.setAdapter(adapter);
+                                msgList.add(model);
+                                adapter.notifyDataSetChanged();
+                              
+                              //create new or open exist chat db by using UUID
                             try {
                                 chatRoomDatabase = new Database(friendUUID, DBconfig);
 
@@ -654,14 +673,17 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
                             } catch (CouchbaseLiteException e) {
                                 e.printStackTrace();
                             }
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
-                    } catch (JSONException e) {
+                    } catch (NullPointerException e) {
                         e.printStackTrace();
+                        Toast.makeText(getApplicationContext(), "Something went wrong, please try again or restart the app.", Toast.LENGTH_LONG).show();
                     }
 
 
 //                    Toast.makeText(getApplicationContext(), "Count:" + adapter.getCount(), Toast.LENGTH_LONG).show();
-
                     break;
             }
             return true;
@@ -701,8 +723,10 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
     public void onConnectionInfoAvailable(WifiP2pInfo info) {
         final InetAddress goAddress = info.groupOwnerAddress;
         if (info.groupFormed && info.isGroupOwner) {
-            serverClass = new ServerClass();
-            serverClass.start();
+            if (serverClass == null) {
+                serverClass = new ServerClass();
+                serverClass.start();
+            }
             // TODO: Send data about myself to the client
             getSupportActionBar().setTitle("New Device");
 //            connectionType = "groupOwner";
@@ -717,8 +741,10 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         } else if (info.groupFormed && !info.isGroupOwner) {
             Log.d("Chat Activity", "goAddress populated");
             groupOwnerAddress = goAddress;
-            clientClass = new ClientClass(goAddress);
-            clientClass.start();
+            if (clientClass == null) {
+                clientClass = new ClientClass(goAddress);
+                clientClass.start();
+            }
             getSupportActionBar().setTitle("Group Owner@" + groupOwnerAddress.toString());
 //            connectionType = "client";
 
@@ -729,5 +755,11 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
 //                e.printStackTrace();
 //            }
         }
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
     }
 }

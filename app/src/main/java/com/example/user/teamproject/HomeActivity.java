@@ -7,6 +7,8 @@ import android.graphics.BitmapFactory;
 
 import android.hardware.camera2.CameraDevice;
 
+import android.net.wifi.WifiManager;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 
@@ -54,12 +56,13 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     private RecyclerView mRecyclerView;
     private FriendListAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
-    ImageView HomeImage, status;
+//    ImageView HomeImage, status;
     TextView HomeUUID, HomeUsername;
     String friendUsername, friendUUID;
     FloatingActionButton fab;
     //    FloatingActionButton fab2;
 //
+    WifiManager wifiManager;
     WifiP2pManager mManager;
     WifiP2pManager.Channel mChannel;
     //    WiFiDirectBroadcastReceiver mReceiver;
@@ -81,6 +84,15 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
+        wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+
+        // Check if WiFi is already enabled
+        if (wifiManager.isWifiEnabled()) {
+//            Toast.makeText(this, "WiFi already enabled!", Toast.LENGTH_SHORT).show();
+        } else {
+//            Toast.makeText(this, "WiFi needed for this app to work. WiFi will automatically be turned on.", Toast.LENGTH_SHORT).show();
+            wifiManager.setWifiEnabled(true);
+        }
 //        mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);
 //
 //        mIntentFilter = new IntentFilter();
@@ -114,7 +126,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         //navigation drawer
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
+//        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        getSupportActionBar().setTitle("Chats");
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -128,10 +141,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         //user's information
         Intent intent = getIntent();
 
-        HomeImage = navigationView.getHeaderView(0).findViewById(R.id.NavHeaderImageView);
+//        HomeImage = navigationView.getHeaderView(0).findViewById(R.id.NavHeaderImageView);
         byte[] imageInByte = intent.getByteArrayExtra("ProfileImage");
         Bitmap bitmap = BitmapFactory.decodeByteArray(imageInByte, 0, imageInByte.length);
-        HomeImage.setImageBitmap(bitmap);
+//        HomeImage.setImageBitmap(bitmap);
 
         HomeUUID = navigationView.getHeaderView(0).findViewById(R.id.NavHeaderUUID);
         HomeUUID.setText(intent.getStringExtra("UUID"));
@@ -206,19 +219,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
-        } else if (id == R.id.action_settings) {
-
-        } else if (id == R.id.nav_logout) {
+        if (id == R.id.nav_logout) {
             try {
                 // Get the database (and create it if it doesn’t exist).
                 DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());

@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#E5A823</color>
-    <color name="colorPrimaryDark">#D89E20</color>
-    <color name="colorAccent">#0055A2</color>
-    <color name="chatSend">#00ffdd</color>
-    <color name="chatReceived">#fffa00</color>
+    <color name="colorPrimary">#6600ff</color>
+    <color name="colorPrimaryDark">#4100ba</color>
+    <color name="colorAccent">#3de5c9</color>
+    <color name="background_gray">#e6e6e6</color>
+    <color name="chatSend">#3de5c9</color>
+    <color name="chatReceived">#ff8efb</color>
+
+    <!--<color name="colorPrimary">#E5A823</color>-->
+    <!--<color name="colorPrimaryDark">#D89E20</color>-->
+    <!--<color name="colorAccent">#0055A2</color>-->
+    <!--<color name="chatSend">#00ffdd</color>-->
+    <!--<color name="chatReceived">#fffa00</color>-->
 </resources>

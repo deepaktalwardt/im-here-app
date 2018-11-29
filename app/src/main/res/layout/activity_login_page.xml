@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/white"
     tools:context=".LoginPageActivity">
 
     <EditText
@@ -34,6 +35,7 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="325dp"
+        android:backgroundTint="@color/colorAccent"
         android:text="login" />
 
     <TextView
@@ -41,16 +43,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:text="Need an account? Click"
+        android:text="First time user? Register here"
         android:textSize="16dp" />
 
     <ImageView
-        android:layout_width="209dp"
-        android:layout_height="290dp"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentBottom="true"
+        android:layout_width="150dp"
+        android:layout_height="100dp"
+        android:layout_centerInParent="true"
+        android:layout_alignParentTop="true"
         android:layout_marginStart="0dp"
         android:layout_marginBottom="0dp"
-        app:srcCompat="@drawable/little_man" />
+        app:srcCompat="@drawable/splash_blue_negative" />
 
 </RelativeLayout>
