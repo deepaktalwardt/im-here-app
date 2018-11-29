@@ -79,33 +79,6 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
         final ArrayList<Friend_card> friendList = new ArrayList<>();
 
-        //remove later
-        PrettyTime prettyTime = new PrettyTime(Locale.getDefault());
-        String ago = prettyTime.format(Calendar.getInstance().getTime());
-        friendList.add(new Friend_card("kles", "kles835135248", ago));
-
-        mRecyclerView = findViewById(R.id.recyclerView);
-        mRecyclerView.setHasFixedSize(true);
-        mLayoutManager = new LinearLayoutManager(this);
-        mAdapter = new FriendListAdapter(friendList);
-
-        mRecyclerView.setLayoutManager(mLayoutManager);
-        mRecyclerView.setAdapter(mAdapter);
-
-        mAdapter.setOnItemClickListener(new FriendListAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(int position) {
-                friendUsername = friendList.get(position).getUsername();
-                friendUUID = friendList.get(position).getUUID();
-                //to new activity
-                Intent intent = new Intent(HomeActivity.this, ChatterActivity.class);
-                intent.putExtra("friendUsername", friendUsername);
-                intent.putExtra("friendUUID", friendUUID);
-
-                startActivity(intent);
-            }
-        });
-
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
 //        mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);
@@ -165,54 +138,53 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         HomeUsername = navigationView.getHeaderView(0).findViewById(R.id.NavHeaderUsername);
         HomeUsername.setText(intent.getStringExtra("Username"));
 
-//        //open exist chat
-//        try {
-//            // Get the database (and create it if it doesn’t exist).
-//            DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
-//            Database friendDatabase = new Database("friendList", config);
-//
-//            //list all friend
-//            Query query = QueryBuilder.select(SelectResult.property("friendUUID"), SelectResult.property("friendUsername"))
-//                    .from(DataSource.database(friendDatabase))
-//                    .where(Expression.property("friendUUID"));
-//            ResultSet rs = query.execute();
-//            int size = rs.allResults().size();
-//
-//            for(int i = 0; i < size; i++) {
-//                rs = query.execute();
-//                friendUUID = rs.allResults().get(i).getString("friendUUID");
-//                rs = query.execute();
-//                friendUsername = rs.allResults().get(i).getString("friendUsername");
-//                rs = query.execute();
-//                time = (Date) rs.allResults().get(i).getValue("time");
-//                PrettyTime prettyTime = new PrettyTime(Locale.getDefault());
-//                String ago = prettyTime.format(time);
-//                friendList.add(new Friend_card(friendUsername, friendUUID, ago));
-//            }
-//
-//            mRecyclerView = findViewById(R.id.recyclerView);
-//            mRecyclerView.setHasFixedSize(true);
-//            mLayoutManager = new LinearLayoutManager(this);
-//            mAdapter = new FriendListAdapter(friendList);
-//
-//            mRecyclerView.setLayoutManager(mLayoutManager);
-//            mRecyclerView.setAdapter(mAdapter);
-//
-//            mAdapter.setOnItemClickListener(new FriendListAdapter.OnItemClickListener() {
-//                @Override
-//                public void onItemClick(int position) {
-//                    friendUsername = friendList.get(position).getUsername();
-//                    friendUUID = friendList.get(position).getUUID();
-//                    Intent intent = new Intent(HomeActivity.this, ChatActivity.class);
-//                    intent.putExtra("FriendUsername", friendUsername);
-//                    intent.putExtra("FriendUUID", friendUUID);
-//
-//                    startActivity(intent);
-//                }
-//            });
-//        } catch (CouchbaseLiteException e) {
-//            e.printStackTrace();
-//        }
+        //open exist chat
+        try {
+            // Get the database (and create it if it doesn’t exist).
+            DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
+            Database friendDatabase = new Database("friendList", config);
+
+            //list all friend
+            Query query = QueryBuilder.select(SelectResult.property("friendUUID"), SelectResult.property("friendUsername"))
+                    .from(DataSource.database(friendDatabase))
+                    .where(Expression.property("friendUUID"));
+            ResultSet rs = query.execute();
+            int size = rs.allResults().size();
+
+            for(int i = 0; i < size; i++) {
+                rs = query.execute();
+                friendUUID = rs.allResults().get(i).getString("friendUUID");
+                rs = query.execute();
+                friendUsername = rs.allResults().get(i).getString("friendUsername");
+                rs = query.execute();
+                time = (Date) rs.allResults().get(i).getValue("time");
+                PrettyTime prettyTime = new PrettyTime(Locale.getDefault());
+                String ago = prettyTime.format(time);
+                friendList.add(new Friend_card(friendUsername, friendUUID, ago));
+            }
+
+            mRecyclerView = findViewById(R.id.recyclerView);
+            mRecyclerView.setHasFixedSize(true);
+            mLayoutManager = new LinearLayoutManager(this);
+            mAdapter = new FriendListAdapter(friendList);
+
+            mRecyclerView.setLayoutManager(mLayoutManager);
+            mRecyclerView.setAdapter(mAdapter);
+
+            mAdapter.setOnItemClickListener(new FriendListAdapter.OnItemClickListener() {
+                @Override
+                public void onItemClick(int position) {
+                    friendUsername = friendList.get(position).getUsername();
+                    friendUUID = friendList.get(position).getUUID();
+                    Intent intent = new Intent(HomeActivity.this, ChatActivity.class);
+                    intent.putExtra("FriendUsername", friendUsername);
+                    intent.putExtra("FriendUUID", friendUUID);
+                    startActivity(intent);
+                }
+            });
+        } catch (CouchbaseLiteException e) {
+            e.printStackTrace();
+        }
 
         startRegistration();
 

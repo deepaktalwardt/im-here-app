@@ -488,7 +488,6 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
         }
     }
 
