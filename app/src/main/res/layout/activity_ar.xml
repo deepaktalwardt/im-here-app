@@ -27,11 +27,11 @@
         android:src="@drawable/arrow3"/>
     <ImageView
         android:id="@+id/pinImage"
-        android:layout_width="80dp"
-        android:layout_height="120dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:visibility="gone"
-        android:src="@drawable/pin"/>
+        android:src="@drawable/logo_blue"/>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

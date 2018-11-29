@@ -289,7 +289,12 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         // Calculate the angle between my device to the target device
         if (myLocation != null) {
             float bearing = myLocation.bearingTo(target);
-
+            GeomagneticField geomagneticField =
+                    new GeomagneticField(Double.valueOf(myLat).floatValue(),
+                            Double.valueOf(myLon).floatValue(),
+                            Double.valueOf(myLocation.getAltitude()).floatValue(),
+                            System.currentTimeMillis());
+            degree -= geomagneticField.getDeclination();
             if (bearing < 0) {
                 bearing += 360;
             }
@@ -357,7 +362,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 
         // Perform the arrow animation
         targetDirection.setText("Heading " + Float.toString(degree));
-        RotateAnimation rotateAnimation = new RotateAnimation(curDegree, -degree,
+        RotateAnimation rotateAnimation = new RotateAnimation(curDegree, degree,
                 Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
         rotateAnimation.setDuration(1000);
         rotateAnimation.setFillAfter(true);

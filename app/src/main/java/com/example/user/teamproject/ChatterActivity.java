@@ -202,20 +202,19 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
             @Override
             public void onClick(View v) {
 
-                if (!metaSent) {
-                    try {
-                        String metadata = createJSONMeta(selfUUID, selfUsername);
+                try {
+                    String metadata = createJSONMeta(selfUUID, selfUsername);
 //                        ChatModel model = new ChatModel(metadata, true);
 //                        adapter = new CustomAdapter(getApplicationContext(), msgList);
 //                        messageList.setAdapter(adapter);
-                        sendReceive.write(metadata.getBytes());
+                    sendReceive.write(metadata.getBytes());
 //                        msgList.add(model);
 //                        adapter.notifyDataSetChanged();
-                        metaSent = true;
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    metaSent = true;
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
+
 
                 String textToSend = entryBox.getText().toString();
 
