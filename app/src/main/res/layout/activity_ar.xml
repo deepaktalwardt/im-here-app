@@ -40,7 +40,7 @@
         android:textSize="30sp"
         android:textColor="@color/common_google_signin_btn_text_dark"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
+        android:background="@drawable/rounded_corner_edittext"
         android:layout_alignParentBottom="true"/>
 
     <TextView
