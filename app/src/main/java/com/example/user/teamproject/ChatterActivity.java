@@ -1,16 +1,25 @@
 package com.example.user.teamproject;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.wifi.WifiManager;
+import android.net.wifi.WpsInfo;
+import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pGroup;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pServiceRequest;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -48,13 +57,14 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-public class ChatterActivity extends AppCompatActivity {
+public class ChatterActivity extends AppCompatActivity implements WifiP2pManager.ConnectionInfoListener {
 
     // Constants
     final String tag = "ChatterActivity";
 
     // UI elements
     FloatingActionButton sendButton;
+    FloatingActionButton arButton;
     EditText entryBox;
     ListView messageList;
 
@@ -66,7 +76,7 @@ public class ChatterActivity extends AppCompatActivity {
     WiFiDirectBroadcastReceiver mReceiver;
     IntentFilter mIntentFilter;
     SendReceive sendReceive;
-    static final int MESSAGE_READ =  1;
+    static final int MESSAGE_READ = 1;
     ServerClass serverClass;
     ClientClass clientClass;
     String deviceType;
@@ -87,19 +97,49 @@ public class ChatterActivity extends AppCompatActivity {
     ArrayList msgList = new ArrayList<ChatModel>();
     CustomAdapter adapter;
 
+    // Connection type
+    String connectionType;
+
+    // Friend Location
+    String friendLon = null;
+    String friendLat = null;
+    Boolean metaSent = false;
+
+    // My Location
+    LocationManager locationManager;
+    Double myLat = 37.335890;
+    Double myLon = -121.882578;
+    Location myLocation;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
+        // Inflate the view as late as possible
+        setContentView(R.layout.activity_chat);
 
         populateSelfParams();
         wireUiToVars();
         setupObjects();
+        setupLocation();
 
         // TODO: Change how Username and UUID is set on action bar
-//        Intent intent = getIntent();
-//        service = (WiFiP2pService) intent.getSerializableExtra("service");
+        Intent intent = getIntent();
+        service = (WiFiP2pService) intent.getSerializableExtra("service");
+        deviceType = intent.getStringExtra("deviceType");
+
+        if (deviceType.equals("initConnection")) {
+//            getSupportActionBar().setTitle(service.getUsername() + " (" + service.getUuid() + ")");
+            initiateConnection("initConnection", service);
+//            getSupportActionBar().setTitle("New Device (" + service.getUuid() + ")");
+            friendUUID = service.getUuid();
+            friendUsername = service.getUsername();
+        } else if (deviceType.equals("recvConnection")) {
+            groupOwnerAddress = service.getGroupOwnerAddress();
+            initiateConnection("client", service);
+        }
+
 //        if (service.getGroupOwnerAddress() == null) {
 //            try {
 //                friendUsername = service.getUsername();
@@ -119,26 +159,8 @@ public class ChatterActivity extends AppCompatActivity {
 //            getSupportActionBar().setTitle("New Device (" + service.getUuid() + ")");
 //        }
 
-        mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener() {
-            @Override
-            public void onGroupInfoAvailable(WifiP2pGroup group) {
-                if (group.isGroupOwner()) {
-                    deviceType = "host";
-                } else {
-//                    groupOwnerAddress = group.getOwner().deviceAddress;
-                }
-            }
-        });
 
-        Intent intent = getIntent();
-        deviceType = intent.getStringExtra("deviceType");
-
-        if (deviceType.equals("host")) {
-
-        } else if (deviceType.equals("client")) {
-
-        }
-
+//        Intent intent = getIntent();
 
         //TODO: Add to Couchbase DB
         // Get the database (and create it if it doesn’t exist).
@@ -188,14 +210,29 @@ public class ChatterActivity extends AppCompatActivity {
 
 
 
+//        Toast toast = Toast.makeText(getApplicationContext(), deviceType + " " + friendUsername + " " + friendUUID, Toast.LENGTH_SHORT);
+//        toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+//        toast.show();
+//        try {
+//            getSupportActionBar().setTitle(friendUsername + " (" + friendUUID + ")");
+//        } catch (NullPointerException e) {
+//            getSupportActionBar().setTitle("New Device");
+//        }
+//        if (deviceType.equals("host")) {
+//
+//        } else if (deviceType.equals("client")) {
+//
+//        }
 
         setSendButtonOnClickListener();
+        setARButtonOnClickListener();
     }
 
     private void wireUiToVars() {
         sendButton = (FloatingActionButton) findViewById(R.id.send_fab);
         entryBox = (EditText) findViewById(R.id.entryBox);
         messageList = (ListView) findViewById(R.id.messageList);
+        arButton = (FloatingActionButton) findViewById(R.id.ar_fab);
     }
 
     private void setupObjects() {
@@ -216,16 +253,92 @@ public class ChatterActivity extends AppCompatActivity {
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                try {
+                    String metadata = createJSONMeta(selfUUID, selfUsername);
+//                        ChatModel model = new ChatModel(metadata, true);
+//                        adapter = new CustomAdapter(getApplicationContext(), msgList);
+//                        messageList.setAdapter(adapter);
+                    sendReceive.write(metadata.getBytes());
+//                        msgList.add(model);
+//                        adapter.notifyDataSetChanged();
+                    metaSent = true;
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+
                 String textToSend = entryBox.getText().toString();
-                ChatModel model = new ChatModel(textToSend, true);
-                adapter = new CustomAdapter(getApplicationContext(), msgList);
-                messageList.setAdapter(adapter);
-                entryBox.setText("");
-                sendReceive.write(textToSend.getBytes());
-                msgList.add(model);
-                adapter.notifyDataSetChanged();
+
+                try {
+                    String packetToSend = createJSONChat(textToSend, myLat.toString(), myLon.toString());
+                    sendReceive.write(packetToSend.getBytes());
+
+                    ChatModel model = new ChatModel(textToSend, true);
+                    adapter = new CustomAdapter(getApplicationContext(), msgList);
+                    messageList.setAdapter(adapter);
+                    entryBox.setText("");
+                    msgList.add(model);
+                    adapter.notifyDataSetChanged();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         });
+    }
+
+    public void setARButtonOnClickListener() {
+        arButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (friendLat != null && friendLon != null) {
+                    Intent intent = new Intent(getApplicationContext(), ARActivity.class);
+                    intent.putExtra("targetLat", friendLat);
+                    intent.putExtra("targetLon", friendLon);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Location from friend not yet received. No GPS signal.", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
+    public void setupLocation() {
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        LocationListener locationListenerGPS = new LocationListener() {
+            @Override
+            public void onLocationChanged(android.location.Location location) {
+                myLat = location.getLatitude();
+                myLon = location.getLongitude();
+                myLocation = location;
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+
+            }
+        };
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, locationListenerGPS);
     }
 
 //    private void initiateConnection(WiFiP2pService service, String connectionType) {
@@ -261,36 +374,66 @@ public class ChatterActivity extends AppCompatActivity {
 //        }
 //    }
 
-    private void initiateConnection(String connectionType, InetAddress groupOwnerAddress) {
-        if (connectionType.equals("host")) {
-            serverClass = new ServerClass();
-            serverClass.start();
-            Toast toast = Toast.makeText(getApplicationContext(), "Host", Toast.LENGTH_SHORT);
-            toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
-            toast.show();
+    private void initiateConnection(String connectionType, WiFiP2pService service) {
+        if (connectionType.equals("initConnection")) {
+//            serverClass = new ServerClass();
+//            serverClass.start();
+//
+//            mManager.createGroup(mChannel, new WifiP2pManager.ActionListener() {
+//                @Override
+//                public void onSuccess() {
+//                    Log.d("GroupCreated", "group created");
+//                }
+//
+//                @Override
+//                public void onFailure(int reason) {
+//                    Log.d("GroupNotCreated", "groupNotCreated");
+//                }
+//            });
 
-            // TODO: Send username, uuid to client
-            try {
-                String metadata = createJSONMeta(selfUUID, selfUsername);
-                sendReceive.write(metadata.getBytes());
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+            WifiP2pConfig config = new WifiP2pConfig();
+            config.deviceAddress = service.getDeviceAddress();
+            config.wps.setup = WpsInfo.PBC;
+//            config.groupOwnerIntent = 15;
 
-        } else if (connectionType.equals("client")) {
-            clientClass = new ChatterActivity.ClientClass(groupOwnerAddress);
-            clientClass.start();
-            Toast toast = Toast.makeText(getApplicationContext(), "Client", Toast.LENGTH_SHORT);
-            toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
-            toast.show();
+            mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
+                        @Override
+                        public void onSuccess() {
+                            Toast toast = Toast.makeText(getApplicationContext(), "Connection Request Successful", Toast.LENGTH_SHORT);
+                            toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                            toast.show();
+                        }
+
+                        @Override
+                        public void onFailure(int reason) {
+                            Toast toast = Toast.makeText(getApplicationContext(), "Connection Request Unsuccessful", Toast.LENGTH_SHORT);
+                            toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                            toast.show();
+                        }
+            });
+
+                    // TODO: Send username, uuid to client
+//            try {
+//                String metadata = createJSONMeta(selfUUID, selfUsername);
+//                sendReceive.write(metadata.getBytes());
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
+
+        } else if (connectionType.equals("recvConnection")) {
+//            clientClass = new ChatterActivity.ClientClass(groupOwnerAddress);
+//            clientClass.start();
+//            Toast toast = Toast.makeText(getApplicationContext(), "Client", Toast.LENGTH_SHORT);
+//            toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+//            toast.show();
 
             // TODO: Send username, uuid to host
-            try {
-                String metadata = createJSONMeta(selfUUID, selfUsername);
-                sendReceive.write(metadata.getBytes());
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                String metadata = createJSONMeta(selfUUID, selfUsername);
+//                sendReceive.write(metadata.getBytes());
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
         }
     }
 
@@ -329,6 +472,7 @@ public class ChatterActivity extends AppCompatActivity {
 
         public SendReceive(Socket skt) {
             socket = skt;
+            Log.d("SendReceiveCreated", "SendReceiveCreated");
             try {
                 inputStream = socket.getInputStream();
                 outputStream = socket.getOutputStream();
@@ -377,6 +521,16 @@ public class ChatterActivity extends AppCompatActivity {
                 socket = serverSocket.accept();
                 sendReceive = new ChatterActivity.SendReceive(socket);
                 sendReceive.start();
+                Log.d("ServerThreadStarted", "Group Owner");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        public void closeSocket() {
+            try {
+                socket.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -400,9 +554,19 @@ public class ChatterActivity extends AppCompatActivity {
                 socket.connect(new InetSocketAddress(hostAdd, 8888), 500);
                 sendReceive = new ChatterActivity.SendReceive(socket);
                 sendReceive.start();
+                Log.d("ClientThreadStarted", "Client");
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+
+        public void closeSocket() {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 
@@ -427,15 +591,34 @@ public class ChatterActivity extends AppCompatActivity {
                     byte[] readBuff = (byte[]) msg.obj;
                     String tempMsg = new String(readBuff, 0, msg.arg1);
                     Toast.makeText(getApplicationContext(), tempMsg, Toast.LENGTH_LONG).show();
-                    ChatModel model = new ChatModel(tempMsg, false);
-                    adapter = new CustomAdapter(getApplicationContext(), msgList);
-
+//                    ChatModel model = new ChatModel(tempMsg, false);
+//                    adapter = new CustomAdapter(getApplicationContext(), msgList);
                     // TODO: Parse JSON Message and check if it is chat message,
                     // meta message or location message
-                    messageList.setAdapter(adapter);
-                    msgList.add(model);
-                    adapter.notifyDataSetChanged();
-                    Toast.makeText(getApplicationContext(), "Count:" + adapter.getCount(), Toast.LENGTH_LONG).show();
+                    try {
+                        JSONObject parsedMessage = new JSONObject(tempMsg);
+                        if (parsedMessage.get("type").equals("meta")) {
+                            friendUsername = parsedMessage.getString("username");
+                            friendUUID = parsedMessage.getString("UUID");
+                            getSupportActionBar().setTitle(friendUsername);
+
+                        } else if (parsedMessage.get("type").equals("chat")) {
+                            String message = parsedMessage.getString("message");
+                            friendLon = parsedMessage.getString("lon");
+                            friendLat = parsedMessage.getString("lat");
+
+                            ChatModel model = new ChatModel(message, false);
+                            adapter = new CustomAdapter(getApplicationContext(), msgList);
+                            messageList.setAdapter(adapter);
+                            msgList.add(model);
+                            adapter.notifyDataSetChanged();
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+
+//                    Toast.makeText(getApplicationContext(), "Count:" + adapter.getCount(), Toast.LENGTH_LONG).show();
 
                     // TODO: add to database
                     try {
@@ -496,6 +679,7 @@ public class ChatterActivity extends AppCompatActivity {
             chat.put("type", "chat");
             chat.put("lat", lat);
             chat.put("lon", lon);
+            chat.put("message", msg);
             return chat.toString();
         } catch (JSONException ex) {
             ex.printStackTrace();
@@ -522,6 +706,39 @@ public class ChatterActivity extends AppCompatActivity {
             messageList.setAdapter(adapter);
             msgList.add(model);
             adapter.notifyDataSetChanged();
+        }
+    }
+    @Override
+    public void onConnectionInfoAvailable(WifiP2pInfo info) {
+        final InetAddress goAddress = info.groupOwnerAddress;
+        if (info.groupFormed && info.isGroupOwner) {
+            serverClass = new ServerClass();
+            serverClass.start();
+            // TODO: Send data about myself to the client
+            getSupportActionBar().setTitle("New Device");
+//            connectionType = "groupOwner";
+
+//            try {
+//                String metadata = createJSONMeta(selfUUID, selfUsername);
+//                sendReceive.write(metadata.getBytes());
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
+
+        } else if (info.groupFormed && !info.isGroupOwner) {
+            Log.d("Chat Activity", "goAddress populated");
+            groupOwnerAddress = goAddress;
+            clientClass = new ClientClass(goAddress);
+            clientClass.start();
+            getSupportActionBar().setTitle("Group Owner@" + groupOwnerAddress.toString());
+//            connectionType = "client";
+
+//            try {
+//                String metadata = createJSONMeta(selfUUID, selfUsername);
+//                sendReceive.write(metadata.getBytes());
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
         }
     }
 }
