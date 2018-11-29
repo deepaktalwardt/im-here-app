@@ -3,6 +3,7 @@
     package="com.example.user.teamproject">
 
     <uses-feature android:name="android.hardware.camera2" />
+
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.hardware.camera2.full" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -38,11 +39,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity android:name=".LoginPageActivity" />
         <activity android:name=".SignupPageActivity" />
-        <activity android:name=".ARActivity"
-            android:theme="@style/AppTheme.NoActionBar"/>
+        <activity
+            android:name=".ARActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".HomeActivity"
             android:label="@string/title_activity_home"
@@ -52,7 +53,8 @@
             android:name="com.google.android.gms.vision.DEPENDENCIES"
             android:value="ocr" />
 
-        <activity android:name=".ChatterActivity"></activity>
+        <activity android:name=".ChatterActivity" />
+        <activity android:name=".OldMessageActivity"></activity>
     </application>
 
 </manifest>

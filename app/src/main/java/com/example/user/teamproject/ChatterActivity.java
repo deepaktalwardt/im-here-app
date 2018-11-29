@@ -117,9 +117,6 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        // Inflate the view as late as possible
-        setContentView(R.layout.activity_chat);
-
         populateSelfParams();
         wireUiToVars();
         setupObjects();
@@ -228,12 +225,47 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
                     String packetToSend = createJSONChat(textToSend, myLat.toString(), myLon.toString());
                     sendReceive.write(packetToSend.getBytes());
 
+
                     ChatModel model = new ChatModel(textToSend, true);
                     adapter = new CustomAdapter(getApplicationContext(), msgList);
                     messageList.setAdapter(adapter);
                     entryBox.setText("");
                     msgList.add(model);
                     adapter.notifyDataSetChanged();
+
+                    //create new or open exist chat db by using UUID
+                    try {
+                        DatabaseConfiguration DBconfig = new DatabaseConfiguration(getApplicationContext());
+                        chatRoomDatabase = new Database(friendUUID, DBconfig);
+
+                        //Every message will be a new doc
+                        MutableDocument messageModel = new MutableDocument();
+                        int count = (int) chatRoomDatabase.getCount();
+                        //count can be last index
+                        //such as when count is 0, means there is no previous message
+                        //and the current message will be at index 0 to new chat db.
+                        //and so on.
+                        JSONObject sentMessage = new JSONObject(packetToSend);
+                        messageModel.setString("chatType", "send");
+                        messageModel.setInt("index", count);
+                        messageModel.setValue("message", sentMessage);
+                        chatRoomDatabase.save(messageModel);
+
+                        //open friendDoc every time that message sent
+                        Query query = QueryBuilder.select(SelectResult.property("docID"))
+                                .from(DataSource.database(userListDatabase))
+                                .where(Expression.property("friendUUID").equalTo(Expression.string(friendUUID)));
+                        ResultSet rs = query.execute();
+                        docID = rs.allResults().get(0).getString("docID");
+                        MutableDocument friendDoc = userListDatabase.getDocument(docID).toMutable();
+                        //get time
+                        Date time = Calendar.getInstance().getTime();
+                        friendDoc.setValue("time", time);
+                        userListDatabase.save(friendDoc);
+                    } catch (CouchbaseLiteException e) {
+                        e.printStackTrace();
+                    }
+
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -578,31 +610,6 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
                                     friendDoc.setString("friendUsername", friendUsername);
                                     userListDatabase.save(friendDoc);
                                 }
-
-                                //create new or open exist chat db by using UUID
-                                chatRoomDatabase = new Database(friendUUID, DBconfig);
-                                //Every message will be a new doc
-                                MutableDocument message = new MutableDocument();
-                                int count = (int) chatRoomDatabase.getCount();
-                                //count can be last index
-                                //such as when count is 0, means there is no previous message
-                                //and the current message will be at index 0 to new chat db.
-                                //and so on.
-                                message.setInt("index", count);
-                                message.setValue("parsedMessage", parsedMessage);
-                                chatRoomDatabase.save(message);
-
-                                //open friendDoc every time that message sent
-                                query = QueryBuilder.select(SelectResult.property("docID"))
-                                        .from(DataSource.database(userListDatabase))
-                                        .where(Expression.property("friendUUID").equalTo(Expression.string(friendUUID)));
-                                rs = query.execute();
-                                docID = rs.allResults().get(0).getString("docID");
-                                friendDoc = userListDatabase.getDocument(docID).toMutable();
-                                //get time
-                                Date time = Calendar.getInstance().getTime();
-                                friendDoc.setValue("time", time);
-                                userListDatabase.save(friendDoc);
                             } catch (CouchbaseLiteException e) {
                                 e.printStackTrace();
                             }
@@ -617,6 +624,36 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
                             messageList.setAdapter(adapter);
                             msgList.add(model);
                             adapter.notifyDataSetChanged();
+
+                            //create new or open exist chat db by using UUID
+                            try {
+                                chatRoomDatabase = new Database(friendUUID, DBconfig);
+
+                                //Every message will be a new doc
+                                MutableDocument messageModel = new MutableDocument();
+                                int count = (int) chatRoomDatabase.getCount();
+                                //count can be last index
+                                //such as when count is 0, means there is no previous message
+                                //and the current message will be at index 0 to new chat db.
+                                messageModel.setString("chatType", "receive");
+                                messageModel.setInt("index", count);
+                                messageModel.setValue("message", parsedMessage);
+                                chatRoomDatabase.save(messageModel);
+
+                                //open friendDoc every time that message sent
+                                Query query = QueryBuilder.select(SelectResult.property("docID"))
+                                        .from(DataSource.database(userListDatabase))
+                                        .where(Expression.property("friendUUID").equalTo(Expression.string(friendUUID)));
+                                ResultSet rs = query.execute();
+                                docID = rs.allResults().get(0).getString("docID");
+                                friendDoc = userListDatabase.getDocument(docID).toMutable();
+                                //get time
+                                Date time = Calendar.getInstance().getTime();
+                                friendDoc.setValue("time", time);
+                                userListDatabase.save(friendDoc);
+                            } catch (CouchbaseLiteException e) {
+                                e.printStackTrace();
+                            }
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -659,27 +696,6 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         return null;
     }
 
-    private void loadMessage(Database friendChat) throws CouchbaseLiteException {
-        Query query = QueryBuilder.select(SelectResult.property("index"))
-                .from(DataSource.database(friendChat))
-                .where(Expression.property("index"));
-        com.couchbase.lite.ResultSet rs = query.execute();
-        int size = rs.allResults().size();
-
-        //get the data and append to a list
-        ArrayList<String> listData = new ArrayList<>();
-        for (int i = 0; i < size; i++) {
-            query = QueryBuilder.select(SelectResult.property("model"))
-                    .from(DataSource.database(chatRoomDatabase))
-                    .where(Expression.property("index").equalTo(Expression.property("index").value(i)));
-            rs = query.execute();
-            ChatModel model = (ChatModel) rs.allResults().get(0).getValue("model");
-            adapter = new CustomAdapter(getApplicationContext(), msgList);
-            messageList.setAdapter(adapter);
-            msgList.add(model);
-            adapter.notifyDataSetChanged();
-        }
-    }
 
     @Override
     public void onConnectionInfoAvailable(WifiP2pInfo info) {

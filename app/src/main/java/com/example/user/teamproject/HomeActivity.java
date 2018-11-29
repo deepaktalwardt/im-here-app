@@ -176,7 +176,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 public void onItemClick(int position) {
                     friendUsername = friendList.get(position).getUsername();
                     friendUUID = friendList.get(position).getUUID();
-                    Intent intent = new Intent(HomeActivity.this, ChatActivity.class);
+                    Intent intent = new Intent(HomeActivity.this, OldMessageActivity.class);
                     intent.putExtra("FriendUsername", friendUsername);
                     intent.putExtra("FriendUUID", friendUUID);
                     startActivity(intent);
