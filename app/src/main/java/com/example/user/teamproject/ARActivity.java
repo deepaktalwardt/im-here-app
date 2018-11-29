@@ -72,6 +72,9 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     private double myLat;
     private double myLon;
 
+    Double doubleTargetLat;
+    Double doubleTargetLon;
+
     private Location myLocation = new Location("me");
     private Location target = new Location("target");
 
@@ -174,6 +177,17 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
             });
         }
 
+        // Get the target device's location
+        Intent intent = getIntent();
+        String targetLat = intent.getStringExtra("targetLat");
+        String targetLon = intent.getStringExtra("targetLon");
+
+        doubleTargetLat = Double.valueOf(targetLat);
+        doubleTargetLon = Double.valueOf(targetLon);
+
+        target.setLatitude(doubleTargetLat);
+        target.setLongitude(doubleTargetLon);
+
         // Setup the location manager to get the device location
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         LocationListener locationListenerGPS = new LocationListener() {
@@ -182,7 +196,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                 myLat = location.getLatitude();
                 myLon = location.getLongitude();
                 myLocation = location;
-                distance.setText(calculateDistance(myLat, myLon, 37.354514, -121.938059));
+                distance.setText(calculateDistance(myLat, myLon, doubleTargetLat, doubleTargetLon));
             }
 
             @Override
@@ -208,10 +222,6 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         // Setup orientation sensor
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
-
-        // Get the target device's location
-        target.setLatitude(37.354514);
-        target.setLongitude(-121.938059);
     }
 
     private void isLocationEnabled() {

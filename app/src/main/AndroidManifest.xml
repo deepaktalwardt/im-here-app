@@ -41,7 +41,8 @@
 
         <activity android:name=".LoginPageActivity" />
         <activity android:name=".SignupPageActivity" />
-        <activity android:name=".ARActivity" />
+        <activity android:name=".ARActivity"
+            android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".HomeActivity"
             android:label="@string/title_activity_home"

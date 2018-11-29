@@ -59,6 +59,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
 
     // UI elements
     FloatingActionButton sendButton;
+    FloatingActionButton arButton;
     EditText entryBox;
     ListView messageList;
 
@@ -96,8 +97,8 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
     String connectionType;
 
     // Friend Location
-    String friendLon;
-    String friendLat;
+    String friendLon = null;
+    String friendLat = null;
     Boolean metaSent = false;
 
     // My Location
@@ -172,12 +173,14 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
 //        }
 
         setSendButtonOnClickListener();
+        setARButtonOnClickListener();
     }
 
     private void wireUiToVars() {
         sendButton = (FloatingActionButton) findViewById(R.id.send_fab);
         entryBox = (EditText) findViewById(R.id.entryBox);
         messageList = (ListView) findViewById(R.id.messageList);
+        arButton = (FloatingActionButton) findViewById(R.id.ar_fab);
     }
 
     private void setupObjects() {
@@ -228,6 +231,22 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
                     adapter.notifyDataSetChanged();
                 } catch (JSONException e) {
                     e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    public void setARButtonOnClickListener() {
+        arButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (friendLat != null && friendLon != null) {
+                    Intent intent = new Intent(getApplicationContext(), ARActivity.class);
+                    intent.putExtra("targetLat", friendLat);
+                    intent.putExtra("targetLon", friendLon);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Location from friend not yet received. No GPS signal.", Toast.LENGTH_LONG).show();
                 }
             }
         });
