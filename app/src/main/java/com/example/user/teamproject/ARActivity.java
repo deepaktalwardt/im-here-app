@@ -313,7 +313,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         // indicate the target device location
         if (degree <= 20 || degree >= 340) {
             pin.setVisibility(View.VISIBLE);
-            pin.setY(400);
+            pin.setY(350);
             if (degree > 0 && degree < 20) {
                 pin.setX((float)(103*degree+1940)/4);
             }
