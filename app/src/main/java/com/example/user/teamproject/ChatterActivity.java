@@ -34,6 +34,7 @@ import com.couchbase.lite.DataSource;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.DatabaseConfiguration;
 import com.couchbase.lite.Expression;
+import com.couchbase.lite.MutableDocument;
 import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryBuilder;
 import com.couchbase.lite.Result;
@@ -41,6 +42,7 @@ import com.couchbase.lite.SelectResult;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ocpsoft.prettytime.PrettyTime;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,6 +53,9 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class ChatterActivity extends AppCompatActivity implements WifiP2pManager.ConnectionInfoListener {
 
@@ -59,6 +64,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
 
     // UI elements
     FloatingActionButton sendButton;
+    FloatingActionButton arButton;
     EditText entryBox;
     ListView messageList;
 
@@ -76,9 +82,8 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
     String deviceType;
     InetAddress groupOwnerAddress;
 
-    // Friend connection params
-    String friendUUID;
-    String friendUsername;
+    // Friend Identifiers
+    String docID, friendUUID, friendUsername;
 
     // My identity params
     String selfUsername;
@@ -96,8 +101,8 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
     String connectionType;
 
     // Friend Location
-    String friendLon;
-    String friendLat;
+    String friendLon = null;
+    String friendLat = null;
     Boolean metaSent = false;
 
     // My Location
@@ -109,6 +114,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_chat);
 
         // Inflate the view as late as possible
         setContentView(R.layout.activity_chat);
@@ -156,6 +162,53 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
 
 //        Intent intent = getIntent();
 
+        //TODO: Add to Couchbase DB
+        // Get the database (and create it if it doesn’t exist).
+        DatabaseConfiguration DBconfig = new DatabaseConfiguration(getApplicationContext());
+        try {
+            userListDatabase = new Database("friendList", DBconfig);
+        } catch (CouchbaseLiteException e) {
+            e.printStackTrace();
+        }
+
+        // Create a new document (i.e. a record) in the database.
+        MutableDocument friendDoc = new MutableDocument();
+        docID = friendDoc.getId();
+        friendDoc.setString("docID", docID);
+        //imply the owner of friends by UUID, maybe other info
+                        /*
+                        friendDoc.setString("myUUID", myUUID);
+                        friendDoc.setBlob("myImage", myBlob);
+                        friendDoc.setString("myUsername", myUsername);
+                        */
+
+
+        //a function to get friends' information and save document
+        Intent intent1 = getIntent();
+        friendUUID = intent1.getStringExtra("FriendUUID");
+        friendUsername = intent1.getStringExtra("FriendUsername");
+        //imageInByte = getArray(otherDevice);
+        //friendBlob = new Blob("image/*", imageInByte);
+
+        friendDoc.setString("friendUUID", friendUUID);
+        friendDoc.setString("friendUsername", friendUsername);
+        //friendDoc.setBlob("friendBlob", friendBlob);
+
+        try {
+            userListDatabase.save(friendDoc);
+        } catch (CouchbaseLiteException e) {
+            e.printStackTrace();
+        }
+
+        //create if chat doesn't exist, otherwise open it and reload old message
+        try {
+            chatRoomDatabase = new Database(friendUUID, DBconfig);
+            loadMessage(chatRoomDatabase);
+        } catch (CouchbaseLiteException e) {
+            e.printStackTrace();
+        }
+
+
 
 //        Toast toast = Toast.makeText(getApplicationContext(), deviceType + " " + friendUsername + " " + friendUUID, Toast.LENGTH_SHORT);
 //        toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
@@ -172,12 +225,14 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
 //        }
 
         setSendButtonOnClickListener();
+        setARButtonOnClickListener();
     }
 
     private void wireUiToVars() {
         sendButton = (FloatingActionButton) findViewById(R.id.send_fab);
         entryBox = (EditText) findViewById(R.id.entryBox);
         messageList = (ListView) findViewById(R.id.messageList);
+        arButton = (FloatingActionButton) findViewById(R.id.ar_fab);
     }
 
     private void setupObjects() {
@@ -199,20 +254,19 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
             @Override
             public void onClick(View v) {
 
-                if (!metaSent) {
-                    try {
-                        String metadata = createJSONMeta(selfUUID, selfUsername);
+                try {
+                    String metadata = createJSONMeta(selfUUID, selfUsername);
 //                        ChatModel model = new ChatModel(metadata, true);
 //                        adapter = new CustomAdapter(getApplicationContext(), msgList);
 //                        messageList.setAdapter(adapter);
-                        sendReceive.write(metadata.getBytes());
+                    sendReceive.write(metadata.getBytes());
 //                        msgList.add(model);
 //                        adapter.notifyDataSetChanged();
-                        metaSent = true;
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    metaSent = true;
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
+
 
                 String textToSend = entryBox.getText().toString();
 
@@ -228,6 +282,22 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
                     adapter.notifyDataSetChanged();
                 } catch (JSONException e) {
                     e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    public void setARButtonOnClickListener() {
+        arButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (friendLat != null && friendLon != null) {
+                    Intent intent = new Intent(getApplicationContext(), ARActivity.class);
+                    intent.putExtra("targetLat", friendLat);
+                    intent.putExtra("targetLon", friendLon);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Location from friend not yet received. No GPS signal.", Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -550,7 +620,39 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
 
 //                    Toast.makeText(getApplicationContext(), "Count:" + adapter.getCount(), Toast.LENGTH_LONG).show();
 
-                    // TODO: add to chat database
+                    // TODO: add to database
+                    try {
+                        DatabaseConfiguration DBconfig = new DatabaseConfiguration(getApplicationContext());
+                        chatRoomDatabase = new Database(friendUUID, DBconfig);
+                        MutableDocument message = new MutableDocument();
+                        int count = (int) chatRoomDatabase.getCount();
+                        //count can be last index
+                        //such as when count is 0, means there is no previous message
+                        //and the current message will be at index 0 to new chat db.
+                        //and so on.
+                        message.setInt("index", count);
+                        message.setValue("model", model);
+                        chatRoomDatabase.save(message);
+
+                        //get time
+                        try {
+                            userListDatabase = new Database("friendList", DBconfig);
+                            Query query = QueryBuilder.select(SelectResult.property("docID"))
+                                    .from(DataSource.database(userListDatabase))
+                                    .where(Expression.property("friendUUID").equalTo(Expression.string(friendUUID)));
+                            com.couchbase.lite.ResultSet rs = query.execute();
+                            docID = rs.allResults().get(0).getString("docID");
+                            MutableDocument friendDoc = userListDatabase.getDocument(docID).toMutable();
+                            PrettyTime prettyTime = new PrettyTime(Locale.getDefault());
+                            String ago = prettyTime.format(new Date(String.valueOf(Calendar.getInstance().getTime())));
+                            friendDoc.setString("time", ago);
+                            userListDatabase.save(friendDoc);
+                        } catch (CouchbaseLiteException e) {
+                            e.printStackTrace();
+                        }
+                    } catch (CouchbaseLiteException e) {
+                        e.printStackTrace();
+                    }
                     break;
             }
             return true;
@@ -585,6 +687,27 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         return null;
     }
 
+    private void loadMessage(Database friendChat) throws CouchbaseLiteException {
+        Query query = QueryBuilder.select(SelectResult.property("index"))
+                .from(DataSource.database(friendChat))
+                .where(Expression.property("index"));
+        com.couchbase.lite.ResultSet rs = query.execute();
+        int size = rs.allResults().size();
+
+        //get the data and append to a list
+        ArrayList<String> listData = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            query = QueryBuilder.select(SelectResult.property("model"))
+                    .from(DataSource.database(chatRoomDatabase))
+                    .where(Expression.property("index").equalTo(Expression.property("index").value(i)));
+            rs = query.execute();
+            ChatModel model = (ChatModel)rs.allResults().get(0).getValue("model");
+            adapter = new CustomAdapter(getApplicationContext(), msgList);
+            messageList.setAdapter(adapter);
+            msgList.add(model);
+            adapter.notifyDataSetChanged();
+        }
+    }
     @Override
     public void onConnectionInfoAvailable(WifiP2pInfo info) {
         final InetAddress goAddress = info.groupOwnerAddress;

@@ -1,3 +1,4 @@
+
 //package com.example.user.teamproject;
 //
 //import android.app.DownloadManager;
@@ -414,6 +415,7 @@
 //            } catch (IOException e) {
 //                e.printStackTrace();
 //            }
+
 //        }
 //    }
 //
@@ -492,6 +494,5 @@
 //            adapter.notifyDataSetChanged();
 //        }
 //    }
-//
 //
 //}
