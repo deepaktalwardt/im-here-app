@@ -26,6 +26,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,7 +48,6 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
 
     // TODO: Add a re-search button and link it to initiating search again
 
-    // TODO: Figure out how to change WiFi Direct device Name from app
 
     // Objects
     WifiManager wifiManager;
@@ -71,6 +71,7 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
     final Map<String, String> deviceToUUID = new HashMap<String, String>();
     final Map<String, String> deviceToUsername = new HashMap<String, String>();
     WiFiP2pService selectedService;
+    ProgressBar pb;
 
     // Friend Params
     String friendUUID;
@@ -86,14 +87,8 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
         //Wire UI to Variables
         wireUiToVars();
         setupObjects();
-
-        // Check if WiFi is already enabled
-        if (wifiManager.isWifiEnabled()) {
-//            Toast.makeText(this, "WiFi already enabled!", Toast.LENGTH_SHORT).show();
-        } else {
-//            Toast.makeText(this, "WiFi needed for this app to work. WiFi will automatically be turned on.", Toast.LENGTH_SHORT).show();
-            wifiManager.setWifiEnabled(true);
-        }
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         // Check if group already created, if yes, delete it
         mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener() {
@@ -124,6 +119,7 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
         });
 
         discoverService();
+        pb.setVisibility(View.VISIBLE);
 
 
 //        mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
@@ -190,6 +186,7 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
         listView = (ListView) findViewById(R.id.listView);
         searchStatus = (TextView) findViewById(R.id.searchStatus);
         getSupportActionBar().setTitle("Nearby Users");
+        pb = (ProgressBar) findViewById(R.id.pb);
     }
 
 //    public WifiP2pManager.PeerListListener peerListListener = new WifiP2pManager.PeerListListener() {
@@ -329,7 +326,7 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
         mManager.discoverServices(mChannel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
-                searchStatus.setText("Searching for nearby users...");
+                searchStatus.setText("Searching...");
 //                Toast.makeText(getApplicationContext(), "Service Discovery Initiated", Toast.LENGTH_SHORT).show();
             }
 
@@ -423,5 +420,11 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
                 finish();
             }
         }
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
     }
 }

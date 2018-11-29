@@ -35,7 +35,7 @@ public class FriendListAdapter extends RecyclerView.Adapter<FriendListAdapter.Fr
             mUsername = itemView.findViewById(R.id.username);
             mUUID = itemView.findViewById(R.id.UUID);
             mTime = itemView.findViewById(R.id.time);
-            mStatus = itemView.findViewById(R.id.status);
+//            mStatus = itemView.findViewById(R.id.status);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -70,11 +70,11 @@ public class FriendListAdapter extends RecyclerView.Adapter<FriendListAdapter.Fr
         friendListViewHolder.mUsername.setText(currentCard.getUsername());
         friendListViewHolder.mUUID.setText(currentCard.getUUID());
         friendListViewHolder.mTime.setText(currentCard.getTime());
-        if(currentCard.getConnection() == 1){
-            friendListViewHolder.mStatus.setImageResource(R.drawable.ic_online);
-        }else{
-            friendListViewHolder.mStatus.setImageResource(R.drawable.ic_offline);
-        }
+//        if(currentCard.getConnection() == 1){
+//            friendListViewHolder.mStatus.setImageResource(R.drawable.ic_online);
+//        }else{
+//            friendListViewHolder.mStatus.setImageResource(R.drawable.ic_offline);
+//        }
 
     }
 

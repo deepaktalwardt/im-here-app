@@ -23,8 +23,20 @@
         android:layout_width="100dp"
         android:layout_height="120dp"
         android:layout_alignParentTop="true"
+        android:layout_marginTop="20dp"
         android:layout_centerInParent="true"
-        android:src="@drawable/arrow3"/>
+        android:src="@drawable/arrow_straight"/>
+
+    <ImageView
+        android:id="@+id/compass"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="45dp"
+        android:layout_marginLeft="16dp"
+        android:src="@drawable/compass_icon"/>
+
     <ImageView
         android:id="@+id/pinImage"
         android:layout_width="wrap_content"
@@ -34,13 +46,19 @@
         android:src="@drawable/logo_blue"/>
     <TextView
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="50dp"
         android:id="@+id/distance"
-        android:text="Distance"
-        android:textSize="30sp"
+        android:text="Waiting for GPS..."
+        android:textSize="20sp"
+        android:padding="10dp"
+        android:paddingEnd="20dp"
+        android:paddingStart="20dp"
+        android:textAlignment="center"
         android:textColor="@color/common_google_signin_btn_text_dark"
-        android:layout_alignParentEnd="true"
-        android:background="@drawable/rounded_corner_edittext"
+        android:layout_alignParentEnd="false"
+        android:layout_centerInParent="true"
+        android:layout_marginBottom="45dp"
+        android:background="@drawable/rounded_corner_edittext_blue"
         android:layout_alignParentBottom="true"/>
 
     <TextView
@@ -49,6 +67,7 @@
         android:id="@+id/targetDirection"
         android:textSize="30sp"
         android:textColor="@color/common_google_signin_btn_text_dark"
+        android:visibility="invisible"
         android:layout_alignParentTop="true"/>
 
 </RelativeLayout>

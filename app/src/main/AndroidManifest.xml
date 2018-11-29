@@ -13,6 +13,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.VIBRATE"/>
 
     <application
         android:allowBackup="true"
@@ -41,8 +42,7 @@
 
         <activity android:name=".LoginPageActivity" />
         <activity android:name=".SignupPageActivity" />
-        <activity android:name=".ARActivity"
-            android:theme="@style/AppTheme.NoActionBar"/>
+        <activity android:name=".ARActivity" />
         <activity
             android:name=".HomeActivity"
             android:label="@string/title_activity_home"

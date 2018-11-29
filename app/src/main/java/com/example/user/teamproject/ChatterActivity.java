@@ -18,6 +18,8 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pServiceRequest;
 import android.os.Handler;
 import android.os.Message;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -96,6 +98,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
     // Chat Objects
     ArrayList msgList = new ArrayList<ChatModel>();
     CustomAdapter adapter;
+    Vibrator v;
 
     // Connection type
     String connectionType;
@@ -123,6 +126,9 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         wireUiToVars();
         setupObjects();
         setupLocation();
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         // TODO: Change how Username and UUID is set on action bar
         Intent intent = getIntent();
@@ -162,51 +168,51 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
 
 //        Intent intent = getIntent();
 
-        //TODO: Add to Couchbase DB
-        // Get the database (and create it if it doesn’t exist).
-        DatabaseConfiguration DBconfig = new DatabaseConfiguration(getApplicationContext());
-        try {
-            userListDatabase = new Database("friendList", DBconfig);
-        } catch (CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
-
-        // Create a new document (i.e. a record) in the database.
-        MutableDocument friendDoc = new MutableDocument();
-        docID = friendDoc.getId();
-        friendDoc.setString("docID", docID);
-        //imply the owner of friends by UUID, maybe other info
-                        /*
-                        friendDoc.setString("myUUID", myUUID);
-                        friendDoc.setBlob("myImage", myBlob);
-                        friendDoc.setString("myUsername", myUsername);
-                        */
-
-
-        //a function to get friends' information and save document
-        Intent intent1 = getIntent();
-        friendUUID = intent1.getStringExtra("FriendUUID");
-        friendUsername = intent1.getStringExtra("FriendUsername");
-        //imageInByte = getArray(otherDevice);
-        //friendBlob = new Blob("image/*", imageInByte);
-
-        friendDoc.setString("friendUUID", friendUUID);
-        friendDoc.setString("friendUsername", friendUsername);
-        //friendDoc.setBlob("friendBlob", friendBlob);
-
-        try {
-            userListDatabase.save(friendDoc);
-        } catch (CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
-
-        //create if chat doesn't exist, otherwise open it and reload old message
-        try {
-            chatRoomDatabase = new Database(friendUUID, DBconfig);
-            loadMessage(chatRoomDatabase);
-        } catch (CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
+//        //TODO: Add to Couchbase DB
+//        // Get the database (and create it if it doesn’t exist).
+//        DatabaseConfiguration DBconfig = new DatabaseConfiguration(getApplicationContext());
+//        try {
+//            userListDatabase = new Database("friendList", DBconfig);
+//        } catch (CouchbaseLiteException e) {
+//            e.printStackTrace();
+//        }
+//
+//        // Create a new document (i.e. a record) in the database.
+//        MutableDocument friendDoc = new MutableDocument();
+//        docID = friendDoc.getId();
+//        friendDoc.setString("docID", docID);
+//        //imply the owner of friends by UUID, maybe other info
+//                        /*
+//                        friendDoc.setString("myUUID", myUUID);
+//                        friendDoc.setBlob("myImage", myBlob);
+//                        friendDoc.setString("myUsername", myUsername);
+//                        */
+//
+//
+//        //a function to get friends' information and save document
+//        Intent intent1 = getIntent();
+//        friendUUID = intent1.getStringExtra("FriendUUID");
+//        friendUsername = intent1.getStringExtra("FriendUsername");
+//        //imageInByte = getArray(otherDevice);
+//        //friendBlob = new Blob("image/*", imageInByte);
+//
+//        friendDoc.setString("friendUUID", friendUUID);
+//        friendDoc.setString("friendUsername", friendUsername);
+//        //friendDoc.setBlob("friendBlob", friendBlob);
+//
+//        try {
+//            userListDatabase.save(friendDoc);
+//        } catch (CouchbaseLiteException e) {
+//            e.printStackTrace();
+//        }
+//
+//        //create if chat doesn't exist, otherwise open it and reload old message
+//        try {
+//            chatRoomDatabase = new Database(friendUUID, DBconfig);
+//            loadMessage(chatRoomDatabase);
+//        } catch (CouchbaseLiteException e) {
+//            e.printStackTrace();
+//        }
 
 
 
@@ -247,6 +253,8 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+
+        v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
     }
 
     public void setSendButtonOnClickListener() {
@@ -265,6 +273,9 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
                     metaSent = true;
                 } catch (JSONException e) {
                     e.printStackTrace();
+                } catch (NullPointerException e) {
+                    e.printStackTrace();
+                    Toast.makeText(getApplicationContext(), "Something went wrong, please try again or restart the app.", Toast.LENGTH_LONG).show();
                 }
 
 
@@ -273,6 +284,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
                 try {
                     String packetToSend = createJSONChat(textToSend, myLat.toString(), myLon.toString());
                     sendReceive.write(packetToSend.getBytes());
+                    ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE));
 
                     ChatModel model = new ChatModel(textToSend, true);
                     adapter = new CustomAdapter(getApplicationContext(), msgList);
@@ -282,6 +294,8 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
                     adapter.notifyDataSetChanged();
                 } catch (JSONException e) {
                     e.printStackTrace();
+                } catch (NullPointerException e) {
+                    Toast.makeText(getApplicationContext(), "Something went wrong, please try again or restart the app.", Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -295,6 +309,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
                     Intent intent = new Intent(getApplicationContext(), ARActivity.class);
                     intent.putExtra("targetLat", friendLat);
                     intent.putExtra("targetLon", friendLon);
+                    intent.putExtra("username", friendUsername);
                     startActivity(intent);
                 } else {
                     Toast.makeText(getApplicationContext(), "Location from friend not yet received. No GPS signal.", Toast.LENGTH_LONG).show();
@@ -580,7 +595,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(mReceiver);
+//        unregisterReceiver(mReceiver);
     }
 
     Handler handler = new Handler(new Handler.Callback() {
@@ -588,71 +603,80 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         public boolean handleMessage(Message msg) {
             switch (msg.what) {
                 case MESSAGE_READ:
-                    byte[] readBuff = (byte[]) msg.obj;
-                    String tempMsg = new String(readBuff, 0, msg.arg1);
-                    Toast.makeText(getApplicationContext(), tempMsg, Toast.LENGTH_LONG).show();
-//                    ChatModel model = new ChatModel(tempMsg, false);
-//                    adapter = new CustomAdapter(getApplicationContext(), msgList);
-                    // TODO: Parse JSON Message and check if it is chat message,
-                    // meta message or location message
                     try {
-                        JSONObject parsedMessage = new JSONObject(tempMsg);
-                        if (parsedMessage.get("type").equals("meta")) {
-                            friendUsername = parsedMessage.getString("username");
-                            friendUUID = parsedMessage.getString("UUID");
-                            getSupportActionBar().setTitle(friendUsername);
+                        byte[] readBuff = (byte[]) msg.obj;
+                        String tempMsg = new String(readBuff, 0, msg.arg1);
+                        Toast.makeText(getApplicationContext(), tempMsg, Toast.LENGTH_LONG).show();
+                        //                    ChatModel model = new ChatModel(tempMsg, false);
+                        //                    adapter = new CustomAdapter(getApplicationContext(), msgList);
+                        // TODO: Parse JSON Message and check if it is chat message,
+                        // meta message or location message
 
-                        } else if (parsedMessage.get("type").equals("chat")) {
-                            String message = parsedMessage.getString("message");
-                            friendLon = parsedMessage.getString("lon");
-                            friendLat = parsedMessage.getString("lat");
 
-                            ChatModel model = new ChatModel(message, false);
-                            adapter = new CustomAdapter(getApplicationContext(), msgList);
-                            messageList.setAdapter(adapter);
-                            msgList.add(model);
-                            adapter.notifyDataSetChanged();
+                        try {
+                            JSONObject parsedMessage = new JSONObject(tempMsg);
+                            if (parsedMessage.get("type").equals("meta")) {
+                                friendUsername = parsedMessage.getString("username");
+                                friendUUID = parsedMessage.getString("UUID");
+                                getSupportActionBar().setTitle(friendUsername);
+
+                            } else if (parsedMessage.get("type").equals("chat")) {
+                                String message = parsedMessage.getString("message");
+                                friendLon = parsedMessage.getString("lon");
+                                friendLat = parsedMessage.getString("lat");
+                                // Get instance of Vibrator from current Context
+                                ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE));
+
+                                ChatModel model = new ChatModel(message, false);
+                                adapter = new CustomAdapter(getApplicationContext(), msgList);
+                                messageList.setAdapter(adapter);
+                                msgList.add(model);
+                                adapter.notifyDataSetChanged();
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
-                    } catch (JSONException e) {
+                    } catch (NullPointerException e) {
                         e.printStackTrace();
+                        Toast.makeText(getApplicationContext(), "Something went wrong, please try again or restart the app.", Toast.LENGTH_LONG).show();
                     }
 
 
 //                    Toast.makeText(getApplicationContext(), "Count:" + adapter.getCount(), Toast.LENGTH_LONG).show();
 
                     // TODO: add to database
-                    try {
-                        DatabaseConfiguration DBconfig = new DatabaseConfiguration(getApplicationContext());
-                        chatRoomDatabase = new Database(friendUUID, DBconfig);
-                        MutableDocument message = new MutableDocument();
-                        int count = (int) chatRoomDatabase.getCount();
-                        //count can be last index
-                        //such as when count is 0, means there is no previous message
-                        //and the current message will be at index 0 to new chat db.
-                        //and so on.
-                        message.setInt("index", count);
-                        message.setValue("model", model);
-                        chatRoomDatabase.save(message);
-
-                        //get time
-                        try {
-                            userListDatabase = new Database("friendList", DBconfig);
-                            Query query = QueryBuilder.select(SelectResult.property("docID"))
-                                    .from(DataSource.database(userListDatabase))
-                                    .where(Expression.property("friendUUID").equalTo(Expression.string(friendUUID)));
-                            com.couchbase.lite.ResultSet rs = query.execute();
-                            docID = rs.allResults().get(0).getString("docID");
-                            MutableDocument friendDoc = userListDatabase.getDocument(docID).toMutable();
-                            PrettyTime prettyTime = new PrettyTime(Locale.getDefault());
-                            String ago = prettyTime.format(new Date(String.valueOf(Calendar.getInstance().getTime())));
-                            friendDoc.setString("time", ago);
-                            userListDatabase.save(friendDoc);
-                        } catch (CouchbaseLiteException e) {
-                            e.printStackTrace();
-                        }
-                    } catch (CouchbaseLiteException e) {
-                        e.printStackTrace();
-                    }
+//                    try {
+//                        DatabaseConfiguration DBconfig = new DatabaseConfiguration(getApplicationContext());
+//                        chatRoomDatabase = new Database(friendUUID, DBconfig);
+//                        MutableDocument message = new MutableDocument();
+//                        int count = (int) chatRoomDatabase.getCount();
+//                        //count can be last index
+//                        //such as when count is 0, means there is no previous message
+//                        //and the current message will be at index 0 to new chat db.
+//                        //and so on.
+//                        message.setInt("index", count);
+//                        message.setValue("model", model);
+//                        chatRoomDatabase.save(message);
+//
+//                        //get time
+//                        try {
+//                            userListDatabase = new Database("friendList", DBconfig);
+//                            Query query = QueryBuilder.select(SelectResult.property("docID"))
+//                                    .from(DataSource.database(userListDatabase))
+//                                    .where(Expression.property("friendUUID").equalTo(Expression.string(friendUUID)));
+//                            com.couchbase.lite.ResultSet rs = query.execute();
+//                            docID = rs.allResults().get(0).getString("docID");
+//                            MutableDocument friendDoc = userListDatabase.getDocument(docID).toMutable();
+//                            PrettyTime prettyTime = new PrettyTime(Locale.getDefault());
+//                            String ago = prettyTime.format(new Date(String.valueOf(Calendar.getInstance().getTime())));
+//                            friendDoc.setString("time", ago);
+//                            userListDatabase.save(friendDoc);
+//                        } catch (CouchbaseLiteException e) {
+//                            e.printStackTrace();
+//                        }
+//                    } catch (CouchbaseLiteException e) {
+//                        e.printStackTrace();
+//                    }
                     break;
             }
             return true;
@@ -712,8 +736,10 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
     public void onConnectionInfoAvailable(WifiP2pInfo info) {
         final InetAddress goAddress = info.groupOwnerAddress;
         if (info.groupFormed && info.isGroupOwner) {
-            serverClass = new ServerClass();
-            serverClass.start();
+            if (serverClass == null) {
+                serverClass = new ServerClass();
+                serverClass.start();
+            }
             // TODO: Send data about myself to the client
             getSupportActionBar().setTitle("New Device");
 //            connectionType = "groupOwner";
@@ -728,8 +754,10 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         } else if (info.groupFormed && !info.isGroupOwner) {
             Log.d("Chat Activity", "goAddress populated");
             groupOwnerAddress = goAddress;
-            clientClass = new ClientClass(goAddress);
-            clientClass.start();
+            if (clientClass == null) {
+                clientClass = new ClientClass(goAddress);
+                clientClass.start();
+            }
             getSupportActionBar().setTitle("Group Owner@" + groupOwnerAddress.toString());
 //            connectionType = "client";
 
@@ -740,5 +768,11 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
 //                e.printStackTrace();
 //            }
         }
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
     }
 }
