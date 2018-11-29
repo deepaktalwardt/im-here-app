@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.Gravity;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -51,16 +52,13 @@ import java.util.Map;
 import static com.example.user.teamproject.InitiateActivity.SERVICE_INSTANCE;
 import static com.example.user.teamproject.InitiateActivity.SERVICE_REG_TYPE;
 
-//public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, WifiP2pManager.ConnectionInfoListener {
 public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private RecyclerView mRecyclerView;
     private FriendListAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
-//    ImageView HomeImage, status;
     TextView HomeUUID, HomeUsername;
     String friendUsername, friendUUID;
     FloatingActionButton fab;
-    //    FloatingActionButton fab2;
 //
     WifiManager wifiManager;
     WifiP2pManager mManager;
@@ -80,7 +78,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        final ArrayList<Friend_card> friendList = new ArrayList<>();
+
 
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
@@ -139,65 +137,14 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         navigationView.setNavigationItemSelectedListener(this);
 
         //user's information
-        Intent intent = getIntent();
-
-//        HomeImage = navigationView.getHeaderView(0).findViewById(R.id.NavHeaderImageView);
-        byte[] imageInByte = intent.getByteArrayExtra("ProfileImage");
-        Bitmap bitmap = BitmapFactory.decodeByteArray(imageInByte, 0, imageInByte.length);
-//        HomeImage.setImageBitmap(bitmap);
+        Intent intent = getIntent();;
 
         HomeUUID = navigationView.getHeaderView(0).findViewById(R.id.NavHeaderUUID);
         HomeUUID.setText(intent.getStringExtra("UUID"));
         HomeUsername = navigationView.getHeaderView(0).findViewById(R.id.NavHeaderUsername);
         HomeUsername.setText(intent.getStringExtra("Username"));
 
-        //open exist chat
-        try {
-            // Get the database (and create it if it doesn’t exist).
-            DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
-            Database friendDatabase = new Database("friendList", config);
-
-            //list all friend
-            Query query = QueryBuilder.select(SelectResult.property("friendUUID"), SelectResult.property("friendUsername"))
-                    .from(DataSource.database(friendDatabase))
-                    .where(Expression.property("friendUUID"));
-            ResultSet rs = query.execute();
-            int size = rs.allResults().size();
-
-            for(int i = 0; i < size; i++) {
-                rs = query.execute();
-                friendUUID = rs.allResults().get(i).getString("friendUUID");
-                rs = query.execute();
-                friendUsername = rs.allResults().get(i).getString("friendUsername");
-                rs = query.execute();
-                time = (Date) rs.allResults().get(i).getValue("time");
-                PrettyTime prettyTime = new PrettyTime(Locale.getDefault());
-                String ago = prettyTime.format(time);
-                friendList.add(new Friend_card(friendUsername, friendUUID, ago));
-            }
-
-            mRecyclerView = findViewById(R.id.recyclerView);
-            mRecyclerView.setHasFixedSize(true);
-            mLayoutManager = new LinearLayoutManager(this);
-            mAdapter = new FriendListAdapter(friendList);
-
-            mRecyclerView.setLayoutManager(mLayoutManager);
-            mRecyclerView.setAdapter(mAdapter);
-
-            mAdapter.setOnItemClickListener(new FriendListAdapter.OnItemClickListener() {
-                @Override
-                public void onItemClick(int position) {
-                    friendUsername = friendList.get(position).getUsername();
-                    friendUUID = friendList.get(position).getUUID();
-                    Intent intent = new Intent(HomeActivity.this, OldMessageActivity.class);
-                    intent.putExtra("FriendUsername", friendUsername);
-                    intent.putExtra("FriendUUID", friendUUID);
-                    startActivity(intent);
-                }
-            });
-        } catch (CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
+        populateOldChat();
 
         startRegistration();
 
@@ -345,5 +292,81 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 Toast.makeText(getApplicationContext(), "Failed to add service", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    public void populateOldChat(){
+        final ArrayList<Friend_card> friendList = new ArrayList<>();
+        //open exist chat
+        try {
+            // Get the database (and create it if it doesn’t exist).
+            DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
+            Database friendDatabase = new Database("friendList", config);
+
+            //list all friend
+            Query query = QueryBuilder.select(SelectResult.property("friendUUID"), SelectResult.property("friendUsername"))
+                    .from(DataSource.database(friendDatabase));
+            ResultSet rs = query.execute();
+            int size = rs.allResults().size();
+            Toast toast = Toast.makeText(HomeActivity.this, "friendList size:" + size, Toast.LENGTH_LONG);
+            toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+            toast.show();
+
+            for(int i = 0; i < size; i++) {
+                rs = query.execute();
+                friendUUID = rs.allResults().get(i).getString("friendUUID");
+                rs = query.execute();
+                friendUsername = rs.allResults().get(i).getString("friendUsername");
+                rs = query.execute();
+
+                try {
+                    Database chatRoomDatabase;
+                    chatRoomDatabase = new Database(friendUUID, config);
+                    Query q2 = QueryBuilder.select(SelectResult.property("index"), SelectResult.property("time"))
+                            .from(DataSource.database(chatRoomDatabase));
+
+                    ResultSet rsChat = q2.execute();
+                    int rsChatSize = rsChat.allResults().size();
+
+                    friendList.add(new Friend_card(friendUsername, friendUUID, "3:17 pm"));
+
+                } catch (CouchbaseLiteException e) {
+                    e.printStackTrace();
+                }
+
+
+//                com.couchbase.lite.ResultSet rs = query.execute();
+
+//                time = (Date) rs.allResults().get(i).getValue("time");
+
+            }
+
+            mRecyclerView = findViewById(R.id.recyclerView);
+            mRecyclerView.setHasFixedSize(true);
+            mLayoutManager = new LinearLayoutManager(this);
+            mAdapter = new FriendListAdapter(friendList);
+
+            mRecyclerView.setLayoutManager(mLayoutManager);
+            mRecyclerView.setAdapter(mAdapter);
+
+            mAdapter.setOnItemClickListener(new FriendListAdapter.OnItemClickListener() {
+                @Override
+                public void onItemClick(int position) {
+                    friendUsername = friendList.get(position).getUsername();
+                    friendUUID = friendList.get(position).getUUID();
+                    Intent intent = new Intent(HomeActivity.this, OldMessageActivity.class);
+                    intent.putExtra("FriendUsername", friendUsername);
+                    intent.putExtra("FriendUUID", friendUUID);
+                    startActivity(intent);
+                }
+            });
+        } catch (CouchbaseLiteException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        populateOldChat();
     }
 }

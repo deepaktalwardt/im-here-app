@@ -1,19 +1,10 @@
 package com.example.user.teamproject;
 
-import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.net.wifi.p2p.WifiP2pManager;
-import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
-import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.DataSource;
@@ -26,9 +17,6 @@ import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryBuilder;
 import com.couchbase.lite.ResultSet;
 import com.couchbase.lite.SelectResult;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class InitiateActivity extends AppCompatActivity {
 
@@ -75,7 +63,6 @@ public class InitiateActivity extends AppCompatActivity {
                 Document userDoc = userDatabase.getDocument(userDocId);
 
                 //load login user's information
-                byte[] imageInByte = userDoc.getBlob("image").getContent();
                 String username = userDoc.getString("username");
                 String UUID = userDoc.getString("UUID");
                 myUUID = UUID;
@@ -83,7 +70,6 @@ public class InitiateActivity extends AppCompatActivity {
 
                 final Intent intent = new Intent(this, HomeActivity.class);
                 intent.putExtra("UserDocId", userDocId);
-                intent.putExtra("ProfileImage", imageInByte);
                 intent.putExtra("UUID", UUID);
                 intent.putExtra("Username", username);
                 handler.postDelayed(new Runnable(){

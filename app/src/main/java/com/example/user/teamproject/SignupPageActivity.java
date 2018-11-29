@@ -39,33 +39,15 @@ import android.provider.Settings.Secure;
 
 
 public class SignupPageActivity extends AppCompatActivity {
-    public static final int RESULT_LOAD_IMG = 1;
-    Button signup, loadPicture;
-    ImageView image;
+    Button signup;
     EditText signupUsername, signupPassword;
     TextView signupHaveAccount;
-    int upload = 0;
-    InputStream is;
-    Blob blob;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup_page);
-
-        image = findViewById(R.id.signupProfileImage);
-        loadPicture = findViewById(R.id.btn_loadPicture);
-        loadPicture.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
-                photoPickerIntent.setType("image/*");
-                startActivityForResult(photoPickerIntent, RESULT_LOAD_IMG);
-                upload++;
-            }
-        });
-
 
         signupUsername = findViewById(R.id.signupUsername);
         signupPassword = findViewById(R.id.signupPassword);
@@ -81,30 +63,14 @@ public class SignupPageActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     // Create a new document (i.e. a record) in the database.
                     MutableDocument userDoc = new MutableDocument();
-                    Bitmap bitmap;
-                    // get image from drawable
-                    if (upload == 0) {
-                        bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_profile_image);
-                    } else {
-                        image.buildDrawingCache();
-                        bitmap = image.getDrawingCache();
-                    }
-
-                    // convert bitmap to byte
-                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                    byte imageInByte[] = stream.toByteArray();
-                    blob = new Blob("image/*", imageInByte);
 
                     String docId = userDoc.getId();
                     String usernameCol = signupUsername.getText().toString();
                     String passwordCol = signupPassword.getText().toString();
-                    String UUID = "";
+                    String UUID;
 
                     //check data is fulfilled
-                    if (imageInByte != null &&
-                            usernameCol.length() != 0 &&
-                            passwordCol.length() != 0) {
+                    if (usernameCol.length() != 0 && passwordCol.length() != 0) {
                         //check if username is used
                         Query query = QueryBuilder.select(SelectResult.property("username"))
                                 .from(DataSource.database(userDatabase))
@@ -118,7 +84,6 @@ public class SignupPageActivity extends AppCompatActivity {
                                 return;
                             }
                             userDoc.setString("userDocId", docId);
-                            userDoc.setBlob("image", blob);
                             userDoc.setString("username", usernameCol);
                             userDoc.setString("password", passwordCol);
 
@@ -138,7 +103,6 @@ public class SignupPageActivity extends AppCompatActivity {
                                 //do success
                                 Intent intent = new Intent(SignupPageActivity.this, HomeActivity.class);
                                 intent.putExtra("UserDocId", docId);
-                                intent.putExtra("ProfileImage", imageInByte);
                                 intent.putExtra("UUID", UUID);
                                 intent.putExtra("Username", usernameCol);
                                 startActivity(intent);
@@ -172,25 +136,6 @@ public class SignupPageActivity extends AppCompatActivity {
         ss.setSpan(clickableSpan, 25, 30, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         signupHaveAccount.setText(ss);
         signupHaveAccount.setMovementMethod(LinkMovementMethod.getInstance());
-    }
-
-    @Override
-    protected void onActivityResult(int reqCode, int resultCode, Intent data) {
-        super.onActivityResult(reqCode, resultCode, data);
-
-        if (resultCode == RESULT_OK) {
-            try {
-                final Uri imageUri = data.getData();
-                final InputStream imageStream = getContentResolver().openInputStream(imageUri);
-                final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
-                image.setImageBitmap(selectedImage);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                toastNote("Something went wrong");
-            }
-        } else {
-            toastNote("You haven't picked Image");
-        }
     }
 
     public void toastNote(String message) {

@@ -26,7 +26,6 @@ public class FriendListAdapter extends RecyclerView.Adapter<FriendListAdapter.Fr
         public TextView mUsername;
         public TextView mUUID;
         public TextView mTime;
-        public ImageView mStatus;
 
         public FriendListViewHolder(@NonNull View itemView, final OnItemClickListener listener) {
             super(itemView);
@@ -66,7 +65,7 @@ public class FriendListAdapter extends RecyclerView.Adapter<FriendListAdapter.Fr
 
         friendListViewHolder.mUsername.setText(currentCard.getUsername());
         friendListViewHolder.mUUID.setText(currentCard.getUUID());
-        friendListViewHolder.mTime.setText(currentCard.getTime());
+        friendListViewHolder.mTime.setText("");
     }
 
     @Override

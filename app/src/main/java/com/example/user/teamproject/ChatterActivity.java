@@ -259,20 +259,26 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
                         JSONObject sentMessage = new JSONObject(packetToSend);
                         messageModel.setString("chatType", "send");
                         messageModel.setInt("index", count);
-                        messageModel.setValue("message", sentMessage);
+                        messageModel.setValue("time", Calendar.getInstance().getTime());
+                        messageModel.setString("message", sentMessage.toString());
                         chatRoomDatabase.save(messageModel);
 
-                        //open friendDoc every time that message sent
-                        Query query = QueryBuilder.select(SelectResult.property("docID"))
-                                .from(DataSource.database(userListDatabase))
-                                .where(Expression.property("friendUUID").equalTo(Expression.string(friendUUID)));
-                        ResultSet rs = query.execute();
-                        docID = rs.allResults().get(0).getString("docID");
-                        MutableDocument friendDoc = userListDatabase.getDocument(docID).toMutable();
-                        //get time
-                        Date time = Calendar.getInstance().getTime();
-                        friendDoc.setValue("time", time);
-                        userListDatabase.save(friendDoc);
+//                        //open friendDoc every time that message sent
+//                        Query query = QueryBuilder.select(SelectResult.property("docID"))
+//                                .from(DataSource.database(userListDatabase))
+//                                .where(Expression.property("friendUUID").equalTo(Expression.string(friendUUID)));
+//                        ResultSet rs = query.execute();
+//                        if(rs.allResults().size() != 0) {
+//                            rs = query.execute();
+//                            docID = rs.allResults().get(0).getString("docID");
+//                            if (docID != null) {
+//                                MutableDocument friendDoc = userListDatabase.getDocument(docID).toMutable();
+//                                //get time
+//                                Date time = Calendar.getInstance().getTime();
+//                                friendDoc.setValue("time", time);
+//                                userListDatabase.save(friendDoc);
+//                            }
+//                        }
                     } catch (CouchbaseLiteException e) {
                         e.printStackTrace();
                     }
@@ -583,11 +589,11 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
     }
 
     Handler handler = new Handler(new Handler.Callback() {
-        DatabaseConfiguration DBconfig = new DatabaseConfiguration(getApplicationContext());
         MutableDocument friendDoc;
 
         @Override
         public boolean handleMessage(Message msg) {
+            DatabaseConfiguration DBconfig = new DatabaseConfiguration(getApplicationContext());
             switch (msg.what) {
                 case MESSAGE_READ:
                     try {
@@ -606,32 +612,39 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
                                 friendUsername = parsedMessage.getString("username");
                                 friendUUID = parsedMessage.getString("UUID");
                                 getSupportActionBar().setTitle(friendUsername);
-                              
-                              //open friendList db to store friend
-                            // Get the database (and create it if it doesn’t exist).
-                            try {
-                                userListDatabase = new Database("friendList", DBconfig);
 
-                                //check if this friendUUID is in friend list
-                                Query query = QueryBuilder.select(SelectResult.property("friendUUID"))
-                                        .from(DataSource.database(userListDatabase))
-                                        .where(Expression.property("friendUUID").equalTo(Expression.string(friendUUID)));
-                                ResultSet rs = query.execute();
+                                //open friendList db to store friend
+                                // Get the database (and create it if it doesn’t exist).
+                                try {
+                                    userListDatabase = new Database("friendList", DBconfig);
 
-                                //if this is a new friend, creates a new doc to store this new friend
-                                if (rs.allResults().size() == 0) {
-                                    friendDoc = new MutableDocument();
-                                    docID = friendDoc.getId();
-                                    friendDoc.setString("docID", docID);
-                                    friendDoc.setString("friendUUID", friendUUID);
-                                    friendDoc.setString("friendUsername", friendUsername);
-                                    userListDatabase.save(friendDoc);
+                                    //check if this friendUUID is in friend list
+                                    Query query = QueryBuilder.select(SelectResult.property("friendUUID"))
+                                            .from(DataSource.database(userListDatabase))
+                                            .where(Expression.property("friendUUID").equalTo(Expression.string(friendUUID)));
+                                    ResultSet rs = query.execute();
+
+                                    //if this is a new friend, creates a new doc to store this new friend
+                                    if (rs.allResults().size() == 0) {
+                                        friendDoc = new MutableDocument();
+                                        docID = friendDoc.getId();
+                                        friendDoc.setString("docID", docID);
+                                        friendDoc.setString("friendUUID", friendUUID);
+                                        friendDoc.setString("friendUsername", friendUsername);
+                                        userListDatabase.save(friendDoc);
+                                        Toast toast = Toast.makeText(ChatterActivity.this, "friendList added", Toast.LENGTH_LONG);
+                                        toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                                        toast.show();
+                                    }else{
+                                        Toast toast = Toast.makeText(ChatterActivity.this, "friendList added already", Toast.LENGTH_LONG);
+                                        toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                                        toast.show();
+                                    }
+                                } catch (CouchbaseLiteException e) {
+                                    e.printStackTrace();
                                 }
-                            } catch (CouchbaseLiteException e) {
-                                e.printStackTrace();
-                            }
 
-                          } else if (parsedMessage.get("type").equals("chat")) {
+                            } else if (parsedMessage.get("type").equals("chat")) {
                                 String message = parsedMessage.getString("message");
                                 friendLon = parsedMessage.getString("lon");
                                 friendLat = parsedMessage.getString("lat");
@@ -643,36 +656,36 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
                                 messageList.setAdapter(adapter);
                                 msgList.add(model);
                                 adapter.notifyDataSetChanged();
-                              
-                              //create new or open exist chat db by using UUID
-                            try {
-                                chatRoomDatabase = new Database(friendUUID, DBconfig);
 
-                                //Every message will be a new doc
-                                MutableDocument messageModel = new MutableDocument();
-                                int count = (int) chatRoomDatabase.getCount();
-                                //count can be last index
-                                //such as when count is 0, means there is no previous message
-                                //and the current message will be at index 0 to new chat db.
-                                messageModel.setString("chatType", "receive");
-                                messageModel.setInt("index", count);
-                                messageModel.setValue("message", parsedMessage);
-                                chatRoomDatabase.save(messageModel);
+                                //create new or open exist chat db by using UUID
+                                try {
+                                    chatRoomDatabase = new Database(friendUUID, DBconfig);
 
-                                //open friendDoc every time that message sent
-                                Query query = QueryBuilder.select(SelectResult.property("docID"))
-                                        .from(DataSource.database(userListDatabase))
-                                        .where(Expression.property("friendUUID").equalTo(Expression.string(friendUUID)));
-                                ResultSet rs = query.execute();
-                                docID = rs.allResults().get(0).getString("docID");
-                                friendDoc = userListDatabase.getDocument(docID).toMutable();
-                                //get time
-                                Date time = Calendar.getInstance().getTime();
-                                friendDoc.setValue("time", time);
-                                userListDatabase.save(friendDoc);
-                            } catch (CouchbaseLiteException e) {
-                                e.printStackTrace();
-                            }
+                                    //Every message will be a new doc
+                                    MutableDocument messageModel = new MutableDocument();
+                                    int count = (int) chatRoomDatabase.getCount();
+                                    //count can be last index
+                                    //such as when count is 0, means there is no previous message
+                                    //and the current message will be at index 0 to new chat db.
+                                    messageModel.setString("chatType", "receive");
+                                    messageModel.setInt("index", count);
+                                    messageModel.setString("message", parsedMessage.toString());
+                                    chatRoomDatabase.save(messageModel);
+
+                                    //open friendDoc every time that message sent
+                                    Query query = QueryBuilder.select(SelectResult.property("docID"))
+                                            .from(DataSource.database(userListDatabase))
+                                            .where(Expression.property("friendUUID").equalTo(Expression.string(friendUUID)));
+                                    ResultSet rs = query.execute();
+                                    docID = rs.allResults().get(0).getString("docID");
+                                    friendDoc = userListDatabase.getDocument(docID).toMutable();
+                                    //get time
+                                    Date time = Calendar.getInstance().getTime();
+                                    friendDoc.setValue("time", time);
+                                    userListDatabase.save(friendDoc);
+                                } catch (CouchbaseLiteException e) {
+                                    e.printStackTrace();
+                                }
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();

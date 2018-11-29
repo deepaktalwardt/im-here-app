@@ -103,7 +103,7 @@ public class LoginPageActivity extends AppCompatActivity {
 
         //link to signup page if user doesn't have an account
         needAccount = findViewById(R.id.needAccount);
-        SpannableString ss = new SpannableString("Need an account? Click");
+        SpannableString ss = new SpannableString("First time user? Register here");
         ClickableSpan clickableSpan = new ClickableSpan() {
             @Override
             public void onClick(View widget) {
@@ -112,7 +112,7 @@ public class LoginPageActivity extends AppCompatActivity {
                 finish();
             }
         };
-        ss.setSpan(clickableSpan, 17, 22, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        ss.setSpan(clickableSpan, 17, 30, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         needAccount.setText(ss);
         needAccount.setMovementMethod(LinkMovementMethod.getInstance());
     }
