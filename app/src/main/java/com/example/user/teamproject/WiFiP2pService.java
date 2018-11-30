@@ -36,14 +36,6 @@ public class WiFiP2pService implements Serializable {
         this.groupOwnerAddress = address;
     }
 
-    public void setDeviceType(String deviceType) {
-        this.deviceType = deviceType;
-    }
-
-    public String getDeviceName() {
-        return this.deviceName;
-    }
-
     public String getDeviceAddress() {
         return this.deviceAddress;
     }

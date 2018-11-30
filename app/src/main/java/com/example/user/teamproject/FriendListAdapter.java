@@ -2,11 +2,9 @@ package com.example.user.teamproject;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -27,15 +25,12 @@ public class FriendListAdapter extends RecyclerView.Adapter<FriendListAdapter.Fr
         public TextView mUsername;
         public TextView mUUID;
         public TextView mTime;
-        public int mConnection;
-        public ImageView mStatus;
 
         public FriendListViewHolder(@NonNull View itemView, final OnItemClickListener listener) {
             super(itemView);
             mUsername = itemView.findViewById(R.id.username);
             mUUID = itemView.findViewById(R.id.UUID);
             mTime = itemView.findViewById(R.id.time);
-            mStatus = itemView.findViewById(R.id.status);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -69,13 +64,7 @@ public class FriendListAdapter extends RecyclerView.Adapter<FriendListAdapter.Fr
 
         friendListViewHolder.mUsername.setText(currentCard.getUsername());
         friendListViewHolder.mUUID.setText(currentCard.getUUID());
-        friendListViewHolder.mTime.setText(currentCard.getTime());
-        if(currentCard.getConnection() == 1){
-            friendListViewHolder.mStatus.setImageResource(R.drawable.ic_online);
-        }else{
-            friendListViewHolder.mStatus.setImageResource(R.drawable.ic_offline);
-        }
-
+        friendListViewHolder.mTime.setText("");
     }
 
     @Override

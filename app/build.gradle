@@ -4,7 +4,7 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.example.user.teamproject"
-        minSdkVersion 24
+        minSdkVersion 26
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
@@ -29,6 +29,8 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    implementation 'com.google.android.gms:play-services-vision:9.8.0'
+    implementation 'com.google.android.gms:play-services:12.0.1'
     implementation 'com.github.lguipeng:BubbleView:1.0.1'
     implementation 'com.google.code.gson:gson:2.8.0'
 }

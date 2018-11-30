@@ -6,23 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".SignupPageActivity">
 
-    <ImageView
-        android:id="@+id/signupProfileImage"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:layout_alignStart="@+id/signupUsername"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="57dp"
-        app:srcCompat="@drawable/ic_profile_image" />
-
-    <Button
-        android:id="@+id/btn_loadPicture"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/signupProfileImage"
-        android:layout_toEndOf="@+id/signupProfileImage"
-        android:text="upload" />
-
     <EditText
         android:id="@+id/signupUsername"
         android:layout_width="match_parent"
@@ -30,7 +13,7 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="273dp"
+        android:layout_marginTop="90dp"
         android:hint="Enter a new username" />
 
     <EditText
@@ -40,7 +23,7 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginHorizontal="20dp"
-        android:layout_marginBottom="228dp"
+        android:layout_marginBottom="412dp"
         android:hint="Enter a new password" />
 
     <Button
@@ -49,7 +32,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="99dp"
+        android:layout_marginBottom="283dp"
+        android:backgroundTint="@color/colorAccent"
         android:text="signup" />
 
     <TextView
@@ -58,7 +42,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="71dp"
+        android:layout_marginBottom="255dp"
         android:text="Already have an account? Click"
         android:textSize="16dp" />
 </RelativeLayout>

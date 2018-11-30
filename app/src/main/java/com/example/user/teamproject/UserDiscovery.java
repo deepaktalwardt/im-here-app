@@ -26,6 +26,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,11 +45,6 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
     // UI elements
     ListView listView;
     TextView searchStatus;
-    ProgressDialog progressDialog;
-
-    // TODO: Add a re-search button and link it to initiating search again
-
-    // TODO: Figure out how to change WiFi Direct device Name from app
 
     // Objects
     WifiManager wifiManager;
@@ -58,13 +54,6 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
     BroadcastReceiver mReceiver;
     IntentFilter mIntentFilter;
 
-    List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
-    String[] deviceNameArray;
-    WifiP2pDevice[] deviceArray;
-
-    List<String> selectNameArray = new ArrayList<String>();
-    List<WifiP2pDevice> selectDeviceArray = new ArrayList<WifiP2pDevice>();
-
     // Service arrays
     List<WiFiP2pService> serviceList = new ArrayList<WiFiP2pService>();
     List<String> serviceNameArray = new ArrayList<String>();
@@ -72,7 +61,7 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
     final Map<String, String> deviceToUUID = new HashMap<String, String>();
     final Map<String, String> deviceToUsername = new HashMap<String, String>();
     WiFiP2pService selectedService;
-
+    ProgressBar pb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,14 +71,8 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
         //Wire UI to Variables
         wireUiToVars();
         setupObjects();
-
-        // Check if WiFi is already enabled
-        if (wifiManager.isWifiEnabled()) {
-//            Toast.makeText(this, "WiFi already enabled!", Toast.LENGTH_SHORT).show();
-        } else {
-//            Toast.makeText(this, "WiFi needed for this app to work. WiFi will automatically be turned on.", Toast.LENGTH_SHORT).show();
-            wifiManager.setWifiEnabled(true);
-        }
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         // Check if group already created, if yes, delete it
         mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener() {
@@ -120,42 +103,19 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
         });
 
         discoverService();
-
-
-//        mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
-//            @Override
-//            public void onSuccess() {
-//                searchStatus.setText("Searching...");
-//            }
-//
-//            @Override
-//            public void onFailure(int reason) {
-//                searchStatus.setText("Discovery starting failed");
-//            }
-//        });
-//
-//        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//
-//                final WifiP2pDevice device = selectDeviceArray.get(position);
-//                String deviceAddress = device.deviceAddress;
-//
-//                Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
-//                intent.putExtra("deviceName", device.deviceName);
-//                intent.putExtra("deviceAddress", deviceAddress);
-//                intent.putExtra("deviceType", "host");
-//
-//                startActivity(intent);
-//            }
-//        });
+        pb.setVisibility(View.VISIBLE);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
                 WiFiP2pService service = serviceList.get(position);
-                connectP2p(service);
+                selectedService = service;
+                Intent intent = new Intent(getApplicationContext(), ChatterActivity.class);
+                intent.putExtra("service", selectedService);
+                intent.putExtra("deviceType", "initConnection");
+                startActivity(intent);
+                finish();
             }
         });
     }
@@ -176,79 +136,11 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
     }
 
     private void wireUiToVars() {
-//        searchResultView = (RecyclerView) findViewById(R.id.searchResultView);
         listView = (ListView) findViewById(R.id.listView);
         searchStatus = (TextView) findViewById(R.id.searchStatus);
         getSupportActionBar().setTitle("Nearby Users");
+        pb = (ProgressBar) findViewById(R.id.pb);
     }
-
-//    public WifiP2pManager.PeerListListener peerListListener = new WifiP2pManager.PeerListListener() {
-//        @Override
-//        public void onPeersAvailable(WifiP2pDeviceList peerList) {
-//            if (!peerList.getDeviceList().equals(peers)) {
-//                peers.clear();
-//                peers.addAll(peerList.getDeviceList());
-//
-//                selectNameArray.clear();
-//                selectDeviceArray.clear();
-//
-//                deviceNameArray = new String[peerList.getDeviceList().size()];
-//                deviceArray = new WifiP2pDevice[peerList.getDeviceList().size()];
-//
-//                int index = 0;
-//                int selectCounter = 0;
-//                for (WifiP2pDevice device : peerList.getDeviceList()) {
-//                    String devName = device.deviceName;
-//                    deviceNameArray[index] = device.deviceName;
-//                    deviceArray[index] = device;
-//                    index++;
-//                    if (devName.toLowerCase().contains("here")) {
-//                        selectNameArray.add(devName.substring(5));
-//                        selectDeviceArray.add(device);
-//                        selectCounter++;
-//                    }
-//                }
-//
-//                Log.d("User Discovery", "index: " + index);
-//
-//
-//                if (selectCounter > 0) {
-//                    // TODO: add to recycler view
-//                    ArrayAdapter<String> adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, selectNameArray);
-//                    listView.setAdapter(adapter);
-//
-//                    searchStatus.setText(selectCounter + " nearby user(s) found. Click on a user to start chatting.");
-//                } else {
-//                    searchStatus.setText("No nearby users found. Try again later.");
-//                }
-//            }
-//
-//            if (peerList.getDeviceList().size() == 0) {
-//                searchStatus.setText("No nearby users found. Try again later.");
-//                return;
-//            }
-//        }
-//    };
-
-//    public WifiP2pManager.ConnectionInfoListener connectionInfoListener = new WifiP2pManager.ConnectionInfoListener() {
-//        @Override
-//        public void onConnectionInfoAvailable(WifiP2pInfo info) {
-//            final InetAddress groupOwnerAddress = info.groupOwnerAddress;
-//
-//            if (info.groupFormed && info.isGroupOwner) {
-////                Toast.makeText(getApplicationContext(), "Host", Toast.LENGTH_SHORT).show();
-//
-//            } else if (info.groupFormed && !info.isGroupOwner) {
-////                Toast.makeText(getApplicationContext(), "Client formed", Toast.LENGTH_SHORT).show();
-//                Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
-//                intent.putExtra("deviceName", "here New Device");
-//                intent.putExtra("deviceAddress", groupOwnerAddress);
-//                intent.putExtra("deviceType", "client");
-//                startActivity(intent);
-//                finish();
-//            }
-//        }
-//    };
 
     @Override
     protected void onResume() {
@@ -263,7 +155,6 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
     }
 
     private void discoverService() {
-
         serviceList.clear();
         serviceNameArray.clear();
 
@@ -271,8 +162,6 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
             @Override
             public void onDnsSdServiceAvailable(String instanceName, String registrationType, WifiP2pDevice srcDevice) {
                 if (instanceName.equalsIgnoreCase(SERVICE_INSTANCE)) {
-                    // TODO: Add the service to the list
-//
                     if (deviceToUUID.containsKey(srcDevice.deviceAddress)) {
                         WiFiP2pService service = new WiFiP2pService();
                         service.setDeviceName(srcDevice.deviceName);
@@ -307,19 +196,19 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
         mManager.addServiceRequest(mChannel, serviceRequest, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
-//                Toast.makeText(getApplicationContext(), "Service Discovery Request Added", Toast.LENGTH_SHORT).show();
+
             }
 
             @Override
             public void onFailure(int reason) {
-//                Toast.makeText(getApplicationContext(), "Failed to add Service Discovery request", Toast.LENGTH_SHORT).show();
+
             }
         });
 
         mManager.discoverServices(mChannel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
-                searchStatus.setText("Searching for nearby users...");
+                searchStatus.setText("Searching...");
 //                Toast.makeText(getApplicationContext(), "Service Discovery Initiated", Toast.LENGTH_SHORT).show();
             }
 
@@ -336,6 +225,7 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
         WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = service.getDeviceAddress();
         config.wps.setup = WpsInfo.PBC;
+        config.groupOwnerIntent = 0;
         if (serviceRequest != null)
             mManager.removeServiceRequest(mChannel, serviceRequest, new WifiP2pManager.ActionListener() {
                         @Override
@@ -349,11 +239,6 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
             @Override
             public void onSuccess() {
                 searchStatus.setText("Connecting to service...");
-                // TODO: Move to onConnectionInfoAvailable
-//                Intent intent = new Intent(getApplicationContext(), ChatterActivity.class);
-//                intent.putExtra("service", selectedService);
-//                startActivity(intent);
-//                finish();
             }
             @Override
             public void onFailure(int errorCode) {
@@ -364,52 +249,32 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
 
     @Override
     public void onConnectionInfoAvailable(WifiP2pInfo p2pInfo) {
-        Thread handler = null;
-        /*
-         * The group owner accepts connections using a server socket and then spawns a
-         * client socket for every client. This is handled by {@code
-         * GroupOwnerSocketHandler}
-         */
         if (p2pInfo.groupFormed) {
             if (p2pInfo.isGroupOwner) {
                 Log.d("Host", "Connected as group owner");
-                //            try {
-                //                handler = new GroupOwnerSocketHandler(
-                //                        ((MessageTarget) this).getHandler());
-                //                handler.start();
-                //            } catch (IOException e) {
-                //                Log.d(TAG,
-                //                        "Failed to create a server thread - " + e.getMessage());
-                //                return;
-                //            }
                 Intent intent = new Intent(getApplicationContext(), ChatterActivity.class);
-                intent.putExtra("service", selectedService);
-                intent.putExtra("deviceType", "host");
+                WiFiP2pService service = new WiFiP2pService();
+                intent.putExtra("service", service);
+                intent.putExtra("deviceType", "recvConnection");
+                service.setGroupOwnerAddress(p2pInfo.groupOwnerAddress);
                 startActivity(intent);
                 finish();
             } else {
-                //            Log.d(TAG, "Connected as peer");
-                //            handler = new ClientSocketHandler(
-                //                    ((MessageTarget) this).getHandler(),
-                //                    p2pInfo.groupOwnerAddress);
-                //            handler.start();
-                //        }
-                //        chatFragment = new WiFiChatFragment();
-                //        getFragmentManager().beginTransaction()
-                //                .replace(R.id.container_root, chatFragment).commit();
-                //        statusTxtView.setVisibility(View.GONE);
-                Log.d("P2PInfoClient", p2pInfo.toString());
+//                Log.d("P2PInfoClient", p2pInfo.toString());
                 Intent intent = new Intent(getApplicationContext(), ChatterActivity.class);
                 WiFiP2pService service = new WiFiP2pService();
-//                service.setUuid(deviceToUUID.get(p2pInfo.groupOwnerAddress));
-//                service.setUsername(deviceToUsername.get(p2pInfo.groupOwnerAddress));
                 service.setGroupOwnerAddress(p2pInfo.groupOwnerAddress);
-                service.setDeviceType("client");
                 intent.putExtra("service", service);
-                intent.putExtra("deviceType", "client");
+                intent.putExtra("deviceType", "recvConnection");
                 startActivity(intent);
                 finish();
             }
         }
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
     }
 }
