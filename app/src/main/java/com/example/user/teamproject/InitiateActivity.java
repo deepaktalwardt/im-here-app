@@ -39,14 +39,17 @@ public class InitiateActivity extends AppCompatActivity {
             DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
             Database userDatabase = new Database("userList", config);
 
+            //check if any user has login
             Query query = QueryBuilder
                     .select(SelectResult.property("userDocId"))
                     .from(DataSource.database(userDatabase))
                     .where(Expression.property("hasLogin").equalTo(Expression.string("true")));
             ResultSet rs = query.execute();
             int size = rs.allResults().size();
+            //The result should only be one since only one person is logged in to device
             if( size == 1){
                 rs = query.execute();
+                //get doc ID to open this user profile
                 String userDocId = rs.allResults().get(0).getString("userDocId");
                 Document userDoc = userDatabase.getDocument(userDocId);
 
@@ -60,6 +63,8 @@ public class InitiateActivity extends AppCompatActivity {
                 intent.putExtra("UserDocId", userDocId);
                 intent.putExtra("UUID", UUID);
                 intent.putExtra("Username", username);
+
+                //wait for 2 second to show logo, and direct to next activity
                 handler.postDelayed(new Runnable(){
                     @Override
                     public void run(){
@@ -68,6 +73,7 @@ public class InitiateActivity extends AppCompatActivity {
                     }
                 }, 2000);
             }else if( size > 1){
+                //in case there is any bug that multiple users log in, forced to log them out.
                 for(int i = 0; i < size; i++){
                     rs = query.execute();
                     String userDocId = rs.allResults().get(i).getString("userDocId");
@@ -77,6 +83,7 @@ public class InitiateActivity extends AppCompatActivity {
                     userDatabase.save(userDoc);
                 }
                 final Intent intent = new Intent(this, LoginPageActivity.class);
+                //wait 2 second
                 handler.postDelayed(new Runnable(){
                     @Override
                     public void run(){
@@ -85,6 +92,7 @@ public class InitiateActivity extends AppCompatActivity {
                     }
                 }, 2000);
             }else{
+                //no user has log in
                 final Intent intent = new Intent(this, LoginPageActivity.class);
                 handler.postDelayed(new Runnable(){
                     @Override

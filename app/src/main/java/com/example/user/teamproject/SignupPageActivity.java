@@ -43,7 +43,6 @@ public class SignupPageActivity extends AppCompatActivity {
     EditText signupUsername, signupPassword;
     TextView signupHaveAccount;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,10 +82,12 @@ public class SignupPageActivity extends AppCompatActivity {
                                 signupPassword.setText("");
                                 return;
                             }
+                            //save user information to database
                             userDoc.setString("userDocId", docId);
                             userDoc.setString("username", usernameCol);
                             userDoc.setString("password", passwordCol);
 
+                            //generate Unique ID for each user
                             Random random = new Random();
                             int randomNum = random.nextInt(1000000000);
                             while(randomNum < 100000000) {

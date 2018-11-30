@@ -144,6 +144,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
+        //list menu in navigation drawer
         if (id == R.id.nav_logout) {
             try {
                 // Get the database (and create it if it doesn’t exist).
@@ -152,6 +153,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 Intent intent = getIntent();
                 String userDocId = intent.getStringExtra("UserDocId");
                 MutableDocument userDoc = userDatabase.getDocument(userDocId).toMutable();
+                //set this user is logged out to check when on initiateActivity
                 userDoc.setString("hasLogin", "false");
                 userDatabase.save(userDoc);
             } catch (CouchbaseLiteException e) {
@@ -230,6 +232,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                     ResultSet rsChat = q2.execute();
                     int rsChatSize = rsChat.allResults().size();
 
+                    //time is not using
                     friendList.add(new Friend_card(friendUsername, friendUUID, "3:17 pm"));
 
                 } catch (CouchbaseLiteException e) {
@@ -245,6 +248,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             mRecyclerView.setLayoutManager(mLayoutManager);
             mRecyclerView.setAdapter(mAdapter);
 
+            //listen to old chat and get friend information from the click
             mAdapter.setOnItemClickListener(new FriendListAdapter.OnItemClickListener() {
                 @Override
                 public void onItemClick(int position) {

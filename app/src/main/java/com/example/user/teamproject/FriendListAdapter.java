@@ -28,10 +28,12 @@ public class FriendListAdapter extends RecyclerView.Adapter<FriendListAdapter.Fr
 
         public FriendListViewHolder(@NonNull View itemView, final OnItemClickListener listener) {
             super(itemView);
+            //information shows on card view(time is not using)
             mUsername = itemView.findViewById(R.id.username);
             mUUID = itemView.findViewById(R.id.UUID);
             mTime = itemView.findViewById(R.id.time);
 
+            //check which position
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

@@ -52,6 +52,7 @@ public class LoginPageActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     try {
+                        //read text from fields to check for match in user database
                         String username = loginUsername.getText().toString();
                         String password = loginPassword.getText().toString();
 
@@ -112,6 +113,7 @@ public class LoginPageActivity extends AppCompatActivity {
                 finish();
             }
         };
+        //set clickable text
         ss.setSpan(clickableSpan, 17, 30, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         needAccount.setText(ss);
         needAccount.setMovementMethod(LinkMovementMethod.getInstance());

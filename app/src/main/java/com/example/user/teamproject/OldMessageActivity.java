@@ -21,11 +21,9 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 public class OldMessageActivity extends AppCompatActivity {
-
-
     Database chatRoomDatabase;
     // friend info
-    String friendUUID, friendUsername, docID;
+    String friendUUID, friendUsername;
 
     // Chat Objects
     ArrayList<ChatModel> msgList = new ArrayList<ChatModel>();
@@ -40,15 +38,18 @@ public class OldMessageActivity extends AppCompatActivity {
         setContentView(R.layout.activity_old_message);
         oldMessageList = (ListView) findViewById(R.id.oldMessageList);
 
+        //get friend info from HomeActivity which list on cards
         Intent intent = getIntent();
         friendUUID = intent.getStringExtra("FriendUUID");
         friendUsername = intent.getStringExtra("FriendUsername");
 
+        //show title on actionbar
         getSupportActionBar().setTitle(friendUsername);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         try {
+            //populate message
             chatRoomDatabase = new Database(friendUUID, config);
             loadMessage(chatRoomDatabase);
         } catch (CouchbaseLiteException e) {
@@ -64,22 +65,27 @@ public class OldMessageActivity extends AppCompatActivity {
         com.couchbase.lite.ResultSet rs = query.execute();
         for (Result result : rs) {
             Log.d("OldMessageActivity", result.getString("message") + result.getString("chatType"));
+            //check if the message is send out by self or receive by friend
             try {
                 if (result.getString("chatType").equals("send")) {
+                    //get message from database
                     String msg = result.getString("message");
                     JSONObject jsonMsg = new JSONObject(msg);
                     String chatMessage = jsonMsg.getString("message");
 
+                    //sort message to right
                     ChatModel model = new ChatModel(chatMessage, true);
                     adapter = new CustomAdapter(getApplicationContext(), msgList);
                     oldMessageList.setAdapter(adapter);
                     msgList.add(model);
                     adapter.notifyDataSetChanged();
                 } else if (result.getString("chatType").equals("receive")) {
+                    //get message from database
                     String msg = result.getString("message");
                     JSONObject jsonMsg = new JSONObject(msg);
                     String chatMessage = jsonMsg.getString("message");
 
+                    //sort message to left
                     ChatModel model = new ChatModel(chatMessage, false);
                     adapter = new CustomAdapter(getApplicationContext(), msgList);
                     oldMessageList.setAdapter(adapter);
