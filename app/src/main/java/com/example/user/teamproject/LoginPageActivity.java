@@ -120,5 +120,4 @@ public class LoginPageActivity extends AppCompatActivity {
     public void toastNote(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
-
 }

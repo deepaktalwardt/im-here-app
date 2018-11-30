@@ -19,14 +19,6 @@ import com.couchbase.lite.ResultSet;
 import com.couchbase.lite.SelectResult;
 
 public class InitiateActivity extends AppCompatActivity {
-
-//    private WifiP2pManager manager;
-//    static final int SERVER_PORT = 4545;
-
-//    private WifiP2pManager.Channel channel;
-//    private BroadcastReceiver receiver = null;
-//    private WifiP2pDnsSdServiceRequest serviceRequest;
-
     // TXT RECORD properties
     public static final String TXTRECORD_PROP_AVAILABLE = "available";
     public static final String SERVICE_INSTANCE = "_imhereapp";
@@ -41,10 +33,6 @@ public class InitiateActivity extends AppCompatActivity {
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-
-//        manager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
-//        channel = manager.initialize(this, getMainLooper(), null);
-
 
         Handler handler = new Handler();
         try {
@@ -109,33 +97,5 @@ public class InitiateActivity extends AppCompatActivity {
         } catch (CouchbaseLiteException e) {
             e.printStackTrace();
         }
-
-//        startRegistration();
-
     }
-
-//    /**
-//     * Registers a local service and then initiates a service discovery
-//     */
-//    private void startRegistration() {
-//        final Map<String, String> record = new HashMap<String, String>();
-//        record.put("available", "visible");
-//        record.put("Name", "imhere!!!");
-//        record.put("myUUID", myUUID);
-//        record.put("myUsername", myUsername);
-//
-//        WifiP2pDnsSdServiceInfo service = WifiP2pDnsSdServiceInfo.newInstance(
-//                SERVICE_INSTANCE, SERVICE_REG_TYPE, record);
-//
-//        manager.addLocalService(channel, service, new WifiP2pManager.ActionListener() {
-//            @Override
-//            public void onSuccess() {
-//                Toast.makeText(getApplicationContext(),"Successfully added " + myUUID, Toast.LENGTH_SHORT).show();
-//            }
-//            @Override
-//            public void onFailure(int error) {
-//                Toast.makeText(getApplicationContext(),"Failed to add service", Toast.LENGTH_SHORT).show();
-//            }
-//        });
-//    }
 }

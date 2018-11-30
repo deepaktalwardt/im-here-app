@@ -58,7 +58,6 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
                 if (userDiscoveryActivity != null) {
 
-//                    mManager.requestPeers(mChannel, userDiscoveryActivity.peerListListener);
                 } else {
                     // do nothing
                 }

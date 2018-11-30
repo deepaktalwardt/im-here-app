@@ -6,10 +6,4 @@
     <color name="background_gray">#e6e6e6</color>
     <color name="chatSend">#3de5c9</color>
     <color name="chatReceived">#ff8efb</color>
-
-    <!--<color name="colorPrimary">#E5A823</color>-->
-    <!--<color name="colorPrimaryDark">#D89E20</color>-->
-    <!--<color name="colorAccent">#0055A2</color>-->
-    <!--<color name="chatSend">#00ffdd</color>-->
-    <!--<color name="chatReceived">#fffa00</color>-->
 </resources>

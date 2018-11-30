@@ -162,22 +162,6 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 
                 @Override
                 public void receiveDetections(Detector.Detections<TextBlock> detections) {
-                    //textView.setText("I saw it!!!!");
-//                    final SparseArray<TextBlock> item1 = detections.getDetectedItems();
-//                    if (item1.size() != 0) {
-//                        boolean post = textView.post(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                StringBuilder sb = new StringBuilder();
-//                                for (int i = 0; i < item1.size(); i++) {
-//                                    TextBlock item = item1.ValueAt(i);
-//                                    sb.append(item.getValue());
-//                                    sb.append("\n");
-//                                }
-//                                textView.setText(sb.toString());
-//                            }
-//                        });
-//                    }
 
                 }
             });
@@ -222,7 +206,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 
             }
         };
-        locationManager.requestLocationUpdates( LocationManager.GPS_PROVIDER,
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                 1000,
                 1, locationListenerGPS);
         isLocationEnabled();
@@ -234,37 +218,26 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 
     private void isLocationEnabled() {
 
-        if(!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-            AlertDialog.Builder alertDialog=new AlertDialog.Builder(context);
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            AlertDialog.Builder alertDialog = new AlertDialog.Builder(context);
             alertDialog.setTitle("Enable Location");
             alertDialog.setMessage("Your locations setting is not enabled. Please enabled it in settings menu.");
-            alertDialog.setPositiveButton("Location Settings", new DialogInterface.OnClickListener(){
-                public void onClick(DialogInterface dialog, int which){
-                    Intent intent=new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            alertDialog.setPositiveButton("Location Settings", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                     startActivity(intent);
                 }
             });
-            alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener(){
-                public void onClick(DialogInterface dialog, int which){
+            alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
                     dialog.cancel();
                 }
             });
-            AlertDialog alert=alertDialog.create();
+            AlertDialog alert = alertDialog.create();
             alert.show();
         }
-        else{
-//            AlertDialog.Builder alertDialog=new AlertDialog.Builder(context);
-//            alertDialog.setTitle("Confirm Location");
-//            alertDialog.setMessage("Your Location is enabled, please enjoy");
-//            alertDialog.setNegativeButton("Back to interface",new DialogInterface.OnClickListener(){
-//                public void onClick(DialogInterface dialog, int which){
-//                    dialog.cancel();
-//                }
-//            });
-//            AlertDialog alert=alertDialog.create();
-//            alert.show();
-        }
     }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -289,7 +262,6 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        //updateDistance();
 
         // Get the angle between my device and north
         float degree = Math.round(event.values[0]);
@@ -311,11 +283,6 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
             if (degree < 0) {
                 degree += 360;
             }
-            //degree = (bearing - degree) * -1;
-            //degree = normalizeDegree(degree);
-
-//            degree = bearing - (bearing + degree);
-//            Math.round(-degree / 360 + 180);
         }
 
         // If my device is pointing towards the target device, we have a pin on camera
@@ -324,50 +291,16 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
             pin.setVisibility(View.VISIBLE);
             pin.setY(400);
             if (degree > 0 && degree < 20) {
-                pin.setX((float)(103*degree+1940)/4);
+                pin.setX((float) (103 * degree + 1940) / 4);
             }
-            if (degree >=340 && degree <= 360) {
-                pin.setX((float)(117*degree-40180)/4);
+            if (degree >= 340 && degree <= 360) {
+                pin.setX((float) (117 * degree - 40180) / 4);
             }
-            //pin.setX(degree);
-//            TranslateAnimation translateAnimation = new TranslateAnimation(curDegree, -degree, Animation.RELATIVE_TO_PARENT, Animation.RELATIVE_TO_PARENT);
-//            translateAnimation.setDuration(210);
-//            translateAnimation.setFillAfter(true);
-//
-//
-//            Rect myViewRect = new Rect();
-//            pin.getGlobalVisibleRect(myViewRect);
-//            float x = myViewRect.left;
-//            float y = myViewRect.right;
-//            Log.d("rect", "x is " + Float.toString(x));
-//            Log.d("rect", "y is " + Float.toString(y));
         } else {
             // If my device is not pointing towards the target device
             // we don't show the pin
             pin.setVisibility(View.GONE);
         }
-
-//        String direcitonText = "";
-//        if (degree <= 20 || degree > 335) {
-//            direcitonText = "N";
-//        } else if (degree > 20 && degree <= 65) {
-//            direcitonText = "NE";
-//        } else if (degree > 65 && degree <= 110) {
-//            direcitonText = "E";
-//        } else if (degree > 110 && degree <= 155) {
-//            direcitonText = "SE";
-//        } else if (degree > 155 && degree <= 200) {
-//            direcitonText = "S";
-//        } else if (degree > 200 && degree <= 245) {
-//            direcitonText = "SW";
-//        } else if (degree > 245 && degree <= 290) {
-//            direcitonText = "W";
-//        } else if (degree > 290 && degree <= 335) {
-//            direcitonText = "NW";
-//        } else {
-//            direcitonText = "";
-//        }
-//        direction.setText(Integer.toString(degree) + (char) 0x00B0 + "  " + direcitonText);
 
         // Perform the arrow animation
         targetDirection.setText("Heading " + Float.toString(degree));
@@ -388,51 +321,26 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         curDegreeForN = -degreeForN;
     }
 
-//    private float normalizeDegree(float value) {
-//        if (value >= 0.0f && value <= 180.0f) {
-//            return value;
-//        } else {
-//            return 180 + (180 + value);
-//        }
-//    }
-
     private String calculateDistance(double lat, double lon, double myLat, double myLon) {
         double dLat = (myLat - lat) * (Math.PI / 180);
         double dLon = (myLon - lon) * (Math.PI / 180);
         double a =
-                Math.sin(dLat/2) * Math.sin(dLat/2)
-                + Math.cos(lat * (Math.PI / 180)) * Math.cos(myLat  * (Math.PI / 180))
-                * Math.sin(dLon/2) * Math.sin(dLon/2);
+                Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                        + Math.cos(lat * (Math.PI / 180)) * Math.cos(myLat * (Math.PI / 180))
+                        * Math.sin(dLon / 2) * Math.sin(dLon / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         double d = 6371 * c * 1000;
         return String.format("%.2f", d) + "m";
 
     }
 
-//    private String calculateDirection(double lat1, double lon1, double lat2, double lon2) {
-//        double longitude1 = lon1;
-//        double longitude2 = lon2;
-//        double latitude1 = Math.toRadians(lat1);
-//        double latitude2 = Math.toRadians(lat2);
-//        double longDiff = Math.toRadians(longitude2 - longitude1);
-//        double y = Math.sin(longDiff) * Math.cos(latitude2);
-//        double x = Math.cos(latitude1) * Math.sin(latitude2) - Math.sin(latitude1) * Math.cos(latitude2) * Math.cos(longDiff);
-//        double resultDegree = (Math.toDegrees(Math.atan2(y, x)) + 360) % 360;
-//        String coordNames[] = {"N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "N"};
-//        double directionid = Math.round(resultDegree / 22.5);
-//        if (directionid < 0) {
-//            directionid = directionid + 16;
-//        }
-//        String compasLoc = coordNames[(int) directionid];
-//        degree = (float) resultDegree;
-//        return String.format("%.2f", resultDegree) + " " + compasLoc;
-//    }
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    }
 
     @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {}
-
-    @Override
-    public void onPointerCaptureChanged(boolean hasCapture) {}
+    public void onPointerCaptureChanged(boolean hasCapture) {
+    }
 
     @Override
     public boolean onSupportNavigateUp() {
