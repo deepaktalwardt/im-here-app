@@ -80,6 +80,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     private Location myLocation = new Location("me");
     private Location target = new Location("target");
 
+    // Ask for permissions for camera and GPS
     public void OnRequestPermissionsResultCallback(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResult) {
         switch (requestCode) {
             case REQUEST_CAMERA_PERMISSION_ID:
@@ -118,6 +119,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
+        // Setup Camera on Surface View
         TextRecognizer textRecognizer = new TextRecognizer.Builder(getApplicationContext()).build();
         if (!textRecognizer.isOperational()) {
             Log.w("AR", "We are in trouble");
@@ -321,6 +323,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         curDegreeForN = -degreeForN;
     }
 
+    // Calculates the distance using the Haversine function
     private String calculateDistance(double lat, double lon, double myLat, double myLon) {
         double dLat = (myLat - lat) * (Math.PI / 180);
         double dLon = (myLon - lon) * (Math.PI / 180);
@@ -342,6 +345,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     public void onPointerCaptureChanged(boolean hasCapture) {
     }
 
+    // Enable back button
     @Override
     public boolean onSupportNavigateUp() {
         onBackPressed();

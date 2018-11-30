@@ -95,9 +95,6 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
     CustomAdapter adapter;
     Vibrator v;
 
-    // Connection type
-    String connectionType;
-
     // Friend Location
     String friendLon = null;
     String friendLat = null;
@@ -105,8 +102,8 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
 
     // My Location
     LocationManager locationManager;
-    Double myLat = 37.335890;
-    Double myLon = -121.882578;
+    Double myLat = 37.335890; // Default Location on SJSU campus
+    Double myLon = -121.882578; // Default location on SJSU campus
     Location myLocation;
 
     @Override
@@ -119,10 +116,11 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         setupObjects();
         setupLocation();
 
+        // Setup back button
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        // TODO: Change how Username and UUID is set on action bar
+        // Get information from Intent
         Intent intent = getIntent();
         service = (WiFiP2pService) intent.getSerializableExtra("service");
         deviceType = intent.getStringExtra("deviceType");
@@ -140,6 +138,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         setARButtonOnClickListener();
     }
 
+    // Wire UI elements to code variables
     private void wireUiToVars() {
         sendButton = (FloatingActionButton) findViewById(R.id.send_fab);
         entryBox = (EditText) findViewById(R.id.entryBox);
@@ -147,6 +146,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         arButton = (FloatingActionButton) findViewById(R.id.ar_fab);
     }
 
+    // Setup Wi-Fi direct objects, Intent Filters and vibration settings
     private void setupObjects() {
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
@@ -163,12 +163,14 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
     }
 
+    // OnClickListener for Send Button
     public void setSendButtonOnClickListener() {
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
                 try {
+                    // Send Meta data first to exchange identifying information
                     String metadata = createJSONMeta(selfUUID, selfUsername);
                     sendReceive.write(metadata.getBytes());
                     metaSent = true;
@@ -182,11 +184,12 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
                 String textToSend = entryBox.getText().toString();
 
                 try {
+                    // Send the actual text message
                     String packetToSend = createJSONChat(textToSend, myLat.toString(), myLon.toString());
                     sendReceive.write(packetToSend.getBytes());
                     ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE));
 
-
+                    // Display the text message on listview
                     ChatModel model = new ChatModel(textToSend, true);
                     adapter = new CustomAdapter(getApplicationContext(), msgList);
                     messageList.setAdapter(adapter);
@@ -225,6 +228,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         });
     }
 
+    // Setup AR button onClickListener
     public void setARButtonOnClickListener() {
         arButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -242,6 +246,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         });
     }
 
+    // Get GPS location for the device
     public void setupLocation() {
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         LocationListener locationListenerGPS = new LocationListener() {
@@ -268,12 +273,12 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
             }
         };
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
             return;
         }
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, locationListenerGPS);
     }
 
+    // Initiate Connection if you clicked on the device
     private void initiateConnection(String connectionType, WiFiP2pService service) {
         if (connectionType.equals("initConnection")) {
             WifiP2pConfig config = new WifiP2pConfig();
@@ -296,7 +301,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
                 }
             });
         } else if (connectionType.equals("recvConnection")) {
-
+            // Don't do anything, just wait for connection to arrive
         }
     }
 
@@ -327,6 +332,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         }
     }
 
+    // Class that manages sockets, inputstream and outputstream
     private class SendReceive extends Thread {
 
         private Socket socket;
@@ -372,7 +378,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         }
     }
 
-
+    // Class that runs on the group owner in WiFiP2pGroup
     public class ServerClass extends Thread {
         Socket socket;
         ServerSocket serverSocket;
@@ -400,6 +406,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         }
     }
 
+    // Class that runs on the Client
     public class ClientClass extends Thread {
 
         Socket socket;
@@ -444,6 +451,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         super.onPause();
     }
 
+    // Handler for handling incoming messages
     Handler handler = new Handler(new Handler.Callback() {
         MutableDocument friendDoc;
 
@@ -551,6 +559,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         }
     });
 
+    // Meta data formatted as JSON
     private String createJSONMeta(String uuid, String username) throws JSONException {
         try {
             JSONObject meta = new JSONObject();
@@ -565,6 +574,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         return null;
     }
 
+    // Chat data formatted as JSON
     private String createJSONChat(String msg, String lat, String lon) throws JSONException {
         try {
             JSONObject chat = new JSONObject();
@@ -580,6 +590,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
     }
 
 
+    // Callback function for when connection is available
     @Override
     public void onConnectionInfoAvailable(WifiP2pInfo info) {
         final InetAddress goAddress = info.groupOwnerAddress;
@@ -588,7 +599,6 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
                 serverClass = new ServerClass();
                 serverClass.start();
             }
-            // TODO: Send data about myself to the client
             getSupportActionBar().setTitle("New Device");
         } else if (info.groupFormed && !info.isGroupOwner) {
             Log.d("Chat Activity", "goAddress populated");
@@ -601,6 +611,7 @@ public class ChatterActivity extends AppCompatActivity implements WifiP2pManager
         }
     }
 
+    // Setup back betton for this activity
     @Override
     public boolean onSupportNavigateUp() {
         onBackPressed();

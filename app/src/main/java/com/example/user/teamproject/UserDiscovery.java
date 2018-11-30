@@ -102,13 +102,15 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
             }
         });
 
+        // Start discovering Services and turn progress bar on
         discoverService();
         pb.setVisibility(View.VISIBLE);
 
+        // Set onItemClickListener on every item in the ListView
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
+                // Find the correct service and start Chatter Activity with that service
                 WiFiP2pService service = serviceList.get(position);
                 selectedService = service;
                 Intent intent = new Intent(getApplicationContext(), ChatterActivity.class);
@@ -120,6 +122,7 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
         });
     }
 
+    // Setup Wifi direct objects
     private void setupObjects() {
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
@@ -135,6 +138,7 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
     }
 
+    // Wire UI to variables
     private void wireUiToVars() {
         listView = (ListView) findViewById(R.id.listView);
         searchStatus = (TextView) findViewById(R.id.searchStatus);
@@ -154,6 +158,7 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
         unregisterReceiver(mReceiver);
     }
 
+    // This function discovers services on other devices
     private void discoverService() {
         serviceList.clear();
         serviceNameArray.clear();
@@ -220,33 +225,7 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
         });
     }
 
-    public void connectP2p(WiFiP2pService service) {
-        selectedService = service;
-        WifiP2pConfig config = new WifiP2pConfig();
-        config.deviceAddress = service.getDeviceAddress();
-        config.wps.setup = WpsInfo.PBC;
-        config.groupOwnerIntent = 0;
-        if (serviceRequest != null)
-            mManager.removeServiceRequest(mChannel, serviceRequest, new WifiP2pManager.ActionListener() {
-                        @Override
-                        public void onSuccess() {
-                        }
-                        @Override
-                        public void onFailure(int arg0) {
-                        }
-                    });
-        mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
-                searchStatus.setText("Connecting to service...");
-            }
-            @Override
-            public void onFailure(int errorCode) {
-                searchStatus.setText("Failed connecting to service");
-            }
-        });
-    }
-
+    // onConnectionInfoAvailable to start ChatterActivities if a connection is received instead of creating
     @Override
     public void onConnectionInfoAvailable(WifiP2pInfo p2pInfo) {
         if (p2pInfo.groupFormed) {
@@ -260,7 +239,6 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
                 startActivity(intent);
                 finish();
             } else {
-//                Log.d("P2PInfoClient", p2pInfo.toString());
                 Intent intent = new Intent(getApplicationContext(), ChatterActivity.class);
                 WiFiP2pService service = new WiFiP2pService();
                 service.setGroupOwnerAddress(p2pInfo.groupOwnerAddress);
@@ -272,6 +250,7 @@ public class UserDiscovery extends AppCompatActivity implements WifiP2pManager.C
         }
     }
 
+    // Add back button
     @Override
     public boolean onSupportNavigateUp() {
         onBackPressed();
