@@ -4,7 +4,9 @@ I'm Here Android application uses Wi-Fi Direct and Augmented Reality to allow of
 
 ## Getting Started
 
-The build folder includes the signed .apk file. You can sideload the app by copying the file to your phone and installing it. Please ensure to allow apps from "Unknown Sources" for a successful installation. To access the Unknown Sources setting directly, press the menu icon or button from the Home screen and tap Settings. Select Security (Android OS 4.0+) or Applications (Android OS 3.0 and earlier). You may need to scroll down to see the Unknown Sources setting. For Android 8.0+, tap Settings, then tap Apps. Next, select "I'm Here," then tap Install unknown apps and toggle "Allow from this source."
+The build folder includes the signed .apk file. You can sideload the app by copying the file to your phone and installing it. Please ensure to allow apps from "Unknown Sources" for a successful installation.
+
+To access the Unknown Sources setting directly, press the menu icon or button from the Home screen and tap Settings. Select Security (Android OS 4.0+) or Applications (Android OS 3.0 and earlier). You may need to scroll down to see the Unknown Sources setting. For Android 8.0+, tap Settings, then tap Apps. Next, select "I'm Here," then tap Install unknown apps and toggle "Allow from this source."
 
 ### Prerequisites
 
