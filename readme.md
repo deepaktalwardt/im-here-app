@@ -1,5 +1,6 @@
 # I'm Here Android Application
-
+<img src="app/src/main/res/drawable-xhdpi/logo_blue.png" width="150px">
+      
 I'm Here Android application uses Wi-Fi Direct and Augmented Reality to allow offline communication between Wi-Fi enabled Android devices in the absence of internet access through cellular or Wi-Fi access points. Augmented Reality allows you to locate your friends without the use of internet or offline maps! Imagine communicating with your friends on a hike, or while skiing, or locating them in a forest or at the beach. All possible with the I'm Here app.
 
 ## Getting Started
@@ -11,6 +12,11 @@ To access the Unknown Sources setting directly, press the menu icon or button fr
 ### Prerequisites
 
 Android Smartphone with Android 8.0+ (API level 26).
+
+### Application Structure
+<img src="app/src/main/res/drawable/flowchart.png">
+
+For details on all the activities, please read the [Project Report](CMPE_277_Project_Report_ I'm_Here.pdf).
 
 ### Installing
 
@@ -50,36 +56,17 @@ Explain what these tests test and why
 Give an example
 ```
 
-## Deployment
-
-Add additional notes about how to deploy this on a live system
-
 ## Built With
 
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+* Android Studio
 
-## Contributing
+## Contributors
 
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
-
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags).
-
-## Authors
-
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
-
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+* **Deepak Talwar** - (https://github.com/deepaktalwardt)
+* **Chen-Feng Huang** - (https://github.com/chuang5)
+* **Donghao Su** - (https://github.com/donghaosu)
 
 ## Acknowledgments
 
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
+* This application was originally developed for the course CMPE 277 - Fall 2018 : Smartphone Application Development at San Jose State University. 
+* Thanks to Qin Bian (https://github.com/QinBian) for designing the awesome logo for the app, and providing advice for the app UI.
