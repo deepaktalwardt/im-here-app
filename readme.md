@@ -16,45 +16,7 @@ Android Smartphone with Android 8.0+ (API level 26).
 ### Application Structure
 <img src="app/src/main/res/drawable/flowchart.png">
 
-For details on all the activities, please read the [Project Report](CMPE_277_Project_Report_ I'm_Here.pdf).
-
-### Installing
-
-A step by step series of examples that tell you how to get a development env running
-
-Say what the step will be
-
-```
-Give the example
-```
-
-And repeat
-
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo
-
-## Running the tests
-
-Explain how to run the automated tests for this system
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-### And coding style tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
+For details on all the activities, please read the [Project Report](https://github.com/deepaktalwardt/im-here-app/blob/master/CMPE_277_Project_Report_%20I'm_Here.pdf).
 
 ## Built With
 
